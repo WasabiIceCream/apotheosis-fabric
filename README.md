@@ -1,4 +1,4 @@
-# Apotheosis (Adventure module) — Fabric port
+# Apotheosis (Adventure module), Fabric port
 
 A Fabric port of the "Adventure" part of [Apotheosis](https://github.com/Shadows-of-Fire/Apotheosis)
 by Shadows-of-Fire, built for the Gameoverse Minecraft server (Fabric 26.1.2).
@@ -26,7 +26,7 @@ Fabric port of Apotheosis's own base library.
 
 ## License and assets
 
-Code is MIT, same as upstream — see `LICENSE`.
+Code is MIT, same as upstream, see `LICENSE`.
 
 Apotheosis's own assets (textures/models) were also MIT until March 2025,
 when upstream split them out under a separate all-rights-reserved license.
