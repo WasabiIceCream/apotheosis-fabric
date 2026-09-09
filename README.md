@@ -52,3 +52,8 @@ Not everything ported cleanly:
 Everything else works: rarities, affixes, gem sockets/cutting/case
 storage, reforging/salvaging/augmenting, and loot injection are all live
 and confirmed booting cleanly on a dedicated server.
+
+## Development history
+
+For the full porting log (every bug found, every NeoForge-to-Fabric API
+decision, in order), see `DEVLOG.md`.
