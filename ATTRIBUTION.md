@@ -67,6 +67,23 @@ before (see README): listed MIT by the redistributor, but is explicitly the
 independent work. Used with the user's explicit go-ahead for this private
 (non-redistributed) server.
 
+## Not in this public repo
+
+The 6 files listed just above (the "Apotheosis 8.5.4 Legacy Textures"
+CurseForge pack files) are excluded from this repository and from its
+GitHub Releases jar, even though the actual mod running on the Gameoverse
+server includes them. The user's original go-ahead for using these was
+scoped specifically to that private server, not to public redistribution
+via a public repo/release — a meaningfully different thing, since the
+pack's own MIT claim is plausible but unverified (likely redistributed
+official Apotheosis art, see the note above). They're listed in
+`.gitignore` and kept locally so the mod can still be built for real use;
+a `git blame`/history check won't find them either, since the repo's very
+first commit was already amended to exclude them before any push. The
+built jar attached to this project's GitHub Releases is built with these
+files stripped, so it is **not** byte-identical to what's deployed on the
+live server — every other file is.
+
 ## `GemCaseScreen`'s GUI background — still unsourced
 
 No free source (pre-split upstream, Zenith, or the CurseForge pack) has a
