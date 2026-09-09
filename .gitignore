@@ -1,0 +1,36 @@
+# gradle
+.gradle/
+build/
+out/
+
+# eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# idea
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# vscode
+.vscode/
+
+# macos
+*.DS_Store
+
+# fabric/loom
+run/
+
+# CurseForge-sourced Gem Case/sigil textures: cleared for use on the private
+# Gameoverse server only, not for public redistribution. Kept on disk (needed
+# to build the mod) but deliberately excluded from this public repo. See
+# ATTRIBUTION.md.
+src/main/resources/assets/apotheosis/textures/blocks/basic_gem_case.png
+src/main/resources/assets/apotheosis/textures/blocks/ender_gem_case.png
+src/main/resources/assets/apotheosis/textures/item/ender_gem_case_icon.png
+src/main/resources/assets/apotheosis/textures/item/gem_case_icon.png
+src/main/resources/assets/apotheosis/textures/item/sigils/malice.png
+src/main/resources/assets/apotheosis/textures/item/sigils/supremacy.png

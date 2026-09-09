@@ -1,0 +1,207 @@
+package dev.shadowsoffire.apotheosis.client;
+
+import java.util.List;
+
+import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix3x2fStack;
+
+import dev.shadowsoffire.apotheosis.AdventureConfig;
+import dev.shadowsoffire.apotheosis.Apotheosis;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.FormattedCharSequence;
+
+/**
+ * Port of NeoForge's {@code WorldTierTutorialScreen} — a step-by-step walkthrough shown the first
+ * time a new player opens {@link WorldTierSelectScreen}.
+ * <p>
+ * Port note (NeoForge -> Fabric): upstream is shown as a GUI layer over
+ * {@code WorldTierSelectScreen} via {@code Minecraft#pushGuiLayer}/{@code #popGuiLayer}. That
+ * layering API doesn't exist in this vanilla version at all (see {@link WorldTierDetailScreen}'s
+ * javadoc for the same finding) — substituted with a plain {@link Minecraft#setScreen} swap back
+ * to the parent {@link WorldTierSelectScreen} on close.
+ */
+public class WorldTierTutorialScreen extends Screen {
+
+    private final WorldTierSelectScreen parent;
+    private TutorialStage stage = TutorialStage.INTRODUCTION;
+    private SimpleTexButton skipButton, prevButton, nextButton;
+
+    public WorldTierTutorialScreen(WorldTierSelectScreen parent, Component title) {
+        super(title);
+        this.parent = parent;
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+
+        int imgLeft = (this.width - WorldTierSelectScreen.IMAGE_WIDTH) / 2;
+        int imgTop = (this.height - WorldTierSelectScreen.IMAGE_HEIGHT) / 2;
+
+        this.skipButton = this.addRenderableWidget(
+            SimpleTexButton.builder()
+                .size(80, 20)
+                .pos(imgLeft + 15, imgTop + 250)
+                .texture(SimpleTexButton.APOTH_SPRITES)
+                .action(btn -> {
+                    this.closeTutorial();
+                })
+                .buttonText(Apotheosis.lang("button", "skip_tutorial"))
+                .build());
+
+        this.prevButton = this.addRenderableWidget(
+            SimpleTexButton.builder()
+                .size(60, 20)
+                .pos(imgLeft + 340, imgTop + 250)
+                .texture(SimpleTexButton.APOTH_SPRITES)
+                .action(btn -> {
+                    this.stage = this.stage.prev();
+                    this.updateButtons();
+                })
+                .buttonText(Apotheosis.lang("button", "prev_tutorial"))
+                .build());
+
+        this.nextButton = this.addRenderableWidget(
+            SimpleTexButton.builder()
+                .size(60, 20)
+                .pos(imgLeft + 420, imgTop + 250)
+                .texture(SimpleTexButton.APOTH_SPRITES)
+                .action(btn -> {
+                    this.stage = this.stage.next();
+                    this.updateButtons();
+                    if (this.stage == null) {
+                        this.closeTutorial();
+                    }
+                })
+                .buttonText(Apotheosis.lang("button", "next_tutorial"))
+                .build());
+
+        this.updateButtons();
+    }
+
+    @Override
+    public void extractBackground(GuiGraphicsExtractor gfx, int mouseX, int mouseY, float partialTick) {
+        int imgLeft = (this.width - WorldTierSelectScreen.IMAGE_WIDTH) / 2;
+        int imgTop = (this.height - WorldTierSelectScreen.IMAGE_HEIGHT) / 2;
+
+        // Port note: the stage overlay textures are near-transparent masks meant to composite
+        // over the parent WorldTierSelectScreen's own background under upstream's GUI-layer
+        // stacking (see this class's javadoc for why that API isn't available here) — without
+        // rendering the parent's background first, the overlay alone shows almost nothing over
+        // vanilla's default blurred game view. Render it explicitly to restore the intended look.
+        this.parent.extractBackground(gfx, mouseX, mouseY, partialTick);
+        gfx.blit(RenderPipelines.GUI_TEXTURED, this.stage.overlay, imgLeft, imgTop, 0, 0, WorldTierSelectScreen.IMAGE_WIDTH, WorldTierSelectScreen.IMAGE_HEIGHT, WorldTierSelectScreen.IMAGE_WIDTH, WorldTierSelectScreen.IMAGE_HEIGHT);
+    }
+
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor gfx, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(gfx, mouseX, mouseY, partialTick);
+        this.parent.extractRenderState(gfx, mouseX, mouseY, partialTick);
+        int imgLeft = (this.width - WorldTierSelectScreen.IMAGE_WIDTH) / 2;
+        int imgTop = (this.height - WorldTierSelectScreen.IMAGE_HEIGHT) / 2;
+        Matrix3x2fStack pose = gfx.pose();
+
+        float scale = 2;
+        pose.pushMatrix();
+        pose.scale(scale, scale);
+        Component title = this.stage.title;
+        gfx.text(this.font, title.getVisualOrderText(), (int) ((imgLeft + 380 - this.font.width(title) * scale / 2) / scale), (int) ((imgTop + 107) / scale), 0xFFFFFFFF, true);
+        pose.popMatrix();
+
+        Component desc = this.stage.description;
+        if (this.stage == TutorialStage.ACTIVATE && !AdventureConfig.enableManualWorldTierChanges) {
+            desc = Apotheosis.lang("tutorial", "world_tier.activate_disabled.desc").withStyle(ChatFormatting.DARK_AQUA);
+        }
+
+        List<FormattedCharSequence> split = this.font.split(desc, 200);
+
+        for (int i = 0; i < split.size(); i++) {
+            FormattedCharSequence line = split.get(i);
+            gfx.text(this.font, line, imgLeft + 280, imgTop + 100 + this.font.lineHeight * 3 + (2 + this.font.lineHeight) * i, 0xFFFFFFFF, true);
+        }
+
+        // Re-render the relevant buttons from the parent so users can see the hovered tooltip when the button is focused.
+        if (this.stage == TutorialStage.WORLD_TIERS) {
+            for (SimpleTexButton btn : this.parent.tierButtons.values()) {
+                btn.extractRenderState(gfx, mouseX, mouseY, partialTick);
+            }
+        }
+        else if (this.stage == TutorialStage.DETAILED_INFO) {
+            this.parent.detailButton.extractRenderState(gfx, mouseX, mouseY, partialTick);
+        }
+        else if (this.stage == TutorialStage.ACTIVATE) {
+            this.parent.activateButton.extractRenderState(gfx, mouseX, mouseY, partialTick);
+        }
+
+    }
+
+    private void updateButtons() {
+        this.skipButton.active = true;
+        this.prevButton.active = this.stage != TutorialStage.INTRODUCTION;
+        if (this.stage == TutorialStage.ACTIVATE) {
+            this.nextButton.setButtonText(Apotheosis.lang("button", "done"));
+        }
+        else {
+            this.nextButton.setButtonText(Apotheosis.lang("button", "next_tutorial"));
+        }
+    }
+
+    private void closeTutorial() {
+        // Port note: fire the parent's completion request *before* swapping the screen back.
+        // Minecraft#setScreen re-runs the parent's init(), which re-checks tutorial-active state
+        // using client-side data that hasn't resynced from the server yet if this order is
+        // reversed — see WorldTierSelectScreen#tutorialClosed's javadoc for the bug that caused.
+        this.parent.closeTutorial();
+        Minecraft.getInstance().setScreen(this.parent);
+    }
+
+    private static enum TutorialStage {
+        INTRODUCTION("introduction"),
+        WORLD_TIERS("world_tiers"),
+        TIER_NAME("tier_name"),
+        TIER_DIFFICULTY("tier_difficulty"),
+        DETAILED_INFO("detailed_info"),
+        ACTIVATE("activate");
+
+        private final Identifier overlay;
+        private final Component title;
+        private final Component description;
+
+        private TutorialStage(String name) {
+            this.overlay = Apotheosis.loc("textures/gui/tutorial/" + name + ".png");
+            this.title = Apotheosis.lang("tutorial", "world_tier." + name + ".title");
+            this.description = Apotheosis.lang("tutorial", "world_tier." + name + ".desc");
+        }
+
+        @Nullable
+        public TutorialStage next() {
+            return switch (this) {
+                case INTRODUCTION -> WORLD_TIERS;
+                case WORLD_TIERS -> TIER_NAME;
+                case TIER_NAME -> TIER_DIFFICULTY;
+                case TIER_DIFFICULTY -> DETAILED_INFO;
+                case DETAILED_INFO -> ACTIVATE;
+                case ACTIVATE -> null;
+            };
+        }
+
+        @Nullable
+        public TutorialStage prev() {
+            return switch (this) {
+                case INTRODUCTION -> null;
+                case WORLD_TIERS -> INTRODUCTION;
+                case TIER_NAME -> WORLD_TIERS;
+                case TIER_DIFFICULTY -> TIER_NAME;
+                case DETAILED_INFO -> TIER_DIFFICULTY;
+                case ACTIVATE -> DETAILED_INFO;
+            };
+        }
+    }
+
+}

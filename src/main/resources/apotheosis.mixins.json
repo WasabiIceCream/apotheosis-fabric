@@ -1,0 +1,22 @@
+{
+  "required": true,
+  "package": "dev.shadowsoffire.apotheosis.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ItemStackMixin",
+    "ItemStackAttributesMixin",
+    "LivingEntityInvoker",
+    "EnchantmentHelperMixin",
+    "LootTableGlobalModifiersMixin",
+    "SmithingMenuMixin",
+    "LivingEntityEquipmentTriggerMixin",
+    "LivingEntityAttributesMixin",
+    "CombatRulesMixin",
+    "PlayerExperienceMixin",
+    "MobSpawnAugmentMixin"
+  ],
+  "client": [
+    "ClientAdvancementsAccessor"
+  ],
+  "minVersion": "0.8.5"
+}

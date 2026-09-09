@@ -1,0 +1,57 @@
+package dev.shadowsoffire.apotheosis.affix;
+
+import dev.shadowsoffire.apotheosis.Apoth;
+import dev.shadowsoffire.apotheosis.Apoth.Components;
+import dev.shadowsoffire.apotheosis.Apoth.Items;
+import dev.shadowsoffire.apotheosis.loot.LootRarity;
+import dev.shadowsoffire.apotheosis.util.ApothSmithingRecipe;
+import dev.shadowsoffire.placebo.dynreg.DynamicHolder;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.SmithingRecipeInput;
+import net.minecraft.world.level.Level;
+
+/**
+ * A smithing-table recipe that strips a custom affix name off an item, applying the Sigil of
+ * Unnaming to an item with an {@link Components#AFFIX_NAME}. Direct port, no NeoForge coupling.
+ */
+public class UnnamingRecipe extends ApothSmithingRecipe {
+
+    public UnnamingRecipe() {
+        super(BASE_PLACEHOLDER, Ingredient.of(Items.SIGIL_OF_UNNAMING.value()), ItemStack.EMPTY);
+    }
+
+    @Override
+    public boolean matches(SmithingRecipeInput pInv, Level pLevel) {
+        ItemStack base = pInv.getItem(BASE);
+        return base.has(Components.AFFIX_NAME) && pInv.getItem(ADDITION).is(Items.SIGIL_OF_UNNAMING);
+    }
+
+    @Override
+    public ItemStack assemble(SmithingRecipeInput pInv) {
+        ItemStack out = pInv.getItem(BASE).copy();
+        DynamicHolder<LootRarity> rarity = AffixHelper.getRarity(out);
+        if (!rarity.isBound()) {
+            return ItemStack.EMPTY;
+        }
+        // args[1] will be set to the item's underlying name. args[0] will be ignored.
+        Component comp = Component.translatable("%2$s", "", "").withStyle(Style.EMPTY.withColor(rarity.get().color()).withItalic(false));
+        AffixHelper.setName(out, comp);
+        return out;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public RecipeSerializer<? extends net.minecraft.world.item.crafting.SmithingRecipe> getSerializer() {
+        return (RecipeSerializer<? extends net.minecraft.world.item.crafting.SmithingRecipe>) Apoth.RecipeSerializers.UNNAMING.value();
+    }
+
+    @Override
+    public boolean isSpecial() {
+        return true;
+    }
+
+}

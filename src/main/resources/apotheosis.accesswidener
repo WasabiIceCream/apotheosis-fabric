@@ -1,0 +1,14 @@
+accessWidener   v2  official
+
+# CleavingAffix resets the attack-cooldown ticker after chaining an extra attack via
+# Player#attack, mirroring what upstream NeoForge exposes without an access transformer.
+accessible field net/minecraft/world/entity/LivingEntity attackStrengthTicker I
+
+# SpectralShotAffix reads the source arrow's base damage to clone it onto the spawned
+# spectral arrow (no public getter exists, only setBaseDamage).
+accessible field net/minecraft/world/entity/projectile/arrow/AbstractArrow baseDamage D
+
+# util.ItemLinking reads the player's currently-hovered slot to link it to chat.
+# AbstractContainerScreen#getHoveredSlot(double, double) is private in this version,
+# and the protected `hoveredSlot` field is only accessible in-hierarchy — widen it directly.
+accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen hoveredSlot Lnet/minecraft/world/inventory/Slot;

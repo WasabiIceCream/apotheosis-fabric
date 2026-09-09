@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "apotheosis:blocks/basic_gem_case"
+  }
+}

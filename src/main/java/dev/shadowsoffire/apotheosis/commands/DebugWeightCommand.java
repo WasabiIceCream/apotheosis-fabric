@@ -1,0 +1,138 @@
+package dev.shadowsoffire.apotheosis.commands;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.gson.JsonPrimitive;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.serialization.JsonOps;
+
+import dev.shadowsoffire.apotheosis.Apoth.BuiltInRegs;
+import dev.shadowsoffire.apotheosis.Apotheosis;
+import dev.shadowsoffire.apotheosis.affix.Affix;
+import dev.shadowsoffire.apotheosis.affix.AffixRegistry;
+import dev.shadowsoffire.apotheosis.affix.AffixType;
+import dev.shadowsoffire.apotheosis.loot.AffixLootRegistry;
+import dev.shadowsoffire.apotheosis.loot.LootCategory;
+import dev.shadowsoffire.apotheosis.loot.LootRarity;
+import dev.shadowsoffire.apotheosis.loot.RarityRegistry;
+import dev.shadowsoffire.apotheosis.socket.gem.GemRegistry;
+import dev.shadowsoffire.apotheosis.tiers.Constraints.Constrained;
+import dev.shadowsoffire.apotheosis.tiers.GenContext;
+import dev.shadowsoffire.apotheosis.tiers.TieredWeights.Weighted;
+import dev.shadowsoffire.placebo.dynreg.DynamicRegistry;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.IdentifierArgument;
+import net.minecraft.commands.arguments.item.ItemArgument;
+import net.minecraft.commands.arguments.item.ItemInput;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.util.random.WeightedRandom;
+import net.minecraft.world.item.ItemStack;
+
+/**
+ * Port note: drops the {@code elites}/{@code invaders} weight-dump subcommands — those registries
+ * (Gateway boss waves) are boss/spawner scoped, out of this port's range.
+ */
+public class DebugWeightCommand {
+
+    public static final SuggestionProvider<CommandSourceStack> SUGGEST_AFFIX_TYPE = (ctx, builder) -> SharedSuggestionProvider.suggest(Arrays.stream(AffixType.values()).map(StringRepresentable::getSerializedName), builder);
+
+    public static final SuggestionProvider<CommandSourceStack> SUGGEST_LOOT_CATEGORY = (ctx, builder) -> SharedSuggestionProvider.suggest(BuiltInRegs.LOOT_CATEGORY.keySet().stream().map(Identifier::toString), builder);
+
+    public static void register(LiteralArgumentBuilder<CommandSourceStack> root, CommandBuildContext ctx) {
+        LiteralArgumentBuilder<CommandSourceStack> weights = Commands.literal("weights");
+
+        weights.then(Commands.literal("affix_loot_entries").executes(c -> dumpWeights(c, AffixLootRegistry.INSTANCE)));
+        weights.then(Commands.literal("affixes")
+            .then(Commands.argument("item", ItemArgument.item(ctx))
+                .then(Commands.argument("type", StringArgumentType.word()).suggests(SUGGEST_AFFIX_TYPE)
+                    .then(Commands.argument("rarity", IdentifierArgument.id()).suggests(RarityCommand.SUGGEST_RARITY)
+                        .executes(c -> dumpAffixWeights(c, ItemArgument.getItem(c, "item"), StringArgumentType.getString(c, "type"), IdentifierArgument.getId(c, "rarity")))))));
+        weights.then(Commands.literal("gems").executes(c -> dumpWeights(c, GemRegistry.INSTANCE)));
+        weights.then(Commands.literal("rarities").executes(c -> dumpWeights(c, RarityRegistry.INSTANCE)));
+
+        root.then(weights);
+    }
+
+    public static <T extends Weighted> void dumpWeightsFor(GenContext ctx, DynamicRegistry<T> registry) {
+        dumpWeightsFor(ctx, registry, Predicates.alwaysTrue());
+    }
+
+    /**
+     * Dumps the weights for all objects in the target registry.
+     * <p>
+     * If the registry objects are {@link Constrained}, objects that fail their constraint check will be treated as having zero weight.
+     */
+    public static <T extends Weighted> void dumpWeightsFor(GenContext ctx, DynamicRegistry<T> registry, Predicate<T> filter) {
+        Collection<T> values = registry.getValues();
+        List<ItemAndWeight<T>> list = new ArrayList<>(values.size());
+
+        values.stream().filter(filter).map(t -> wrapWithConstraints(ctx, t)).forEach(list::add);
+
+        float total = WeightedRandom.getTotalWeight(list, ItemAndWeight::weight);
+
+        Apotheosis.LOGGER.info("Starting dump of all {} weights...", registry.getId());
+        Apotheosis.LOGGER.info("Current GenContext: {}", ctx);
+        Comparator<ItemAndWeight<T>> comparator = Comparator.comparing(w -> -w.weight());
+        comparator = comparator.thenComparing(Comparator.comparing(w -> registry.getKey(w.item()).toString()));
+        list.sort(comparator);
+        for (ItemAndWeight<T> entry : list) {
+            Identifier key = registry.getKey(entry.item());
+            float chance = entry.weight() / total;
+            Apotheosis.LOGGER.info("{} : {}% ({} / {}}", key, Affix.fmt(chance * 100), entry.weight(), (int) total);
+        }
+    }
+
+    public static <T extends Weighted> int dumpWeights(CommandContext<CommandSourceStack> c, DynamicRegistry<T> registry) throws CommandSyntaxException {
+        GenContext ctx = GenContext.forPlayer(c.getSource().getPlayerOrException());
+        dumpWeightsFor(ctx, registry);
+        c.getSource().sendSuccess(() -> Component.literal("Weight values have been dumped to the log file."), true);
+        return 0;
+    }
+
+    private static <T extends Weighted> ItemAndWeight<T> wrapWithConstraints(GenContext ctx, T t) {
+        if (t instanceof Constrained c && !c.constraints().test(ctx)) {
+            return new ItemAndWeight<>(t, 0);
+        }
+        return new ItemAndWeight<>(t, t.weights().getWeight(ctx));
+    }
+
+    private static final DynamicCommandExceptionType UNKNOWN_RARITY = new DynamicCommandExceptionType(str -> () -> "Unknown Rarity: " + str);
+
+    private static final DynamicCommandExceptionType UNKNOWN_AFFIX_TYPE = new DynamicCommandExceptionType(str -> () -> "Unknown Affix Type: " + str);
+
+    private static int dumpAffixWeights(CommandContext<CommandSourceStack> c, ItemInput item, String typeStr, Identifier rarityId) throws CommandSyntaxException {
+        LootRarity rarity = RarityRegistry.INSTANCE.getValue(rarityId);
+        if (rarity == null) {
+            throw UNKNOWN_RARITY.create(rarityId);
+        }
+
+        AffixType type = AffixType.CODEC.decode(JsonOps.INSTANCE, new JsonPrimitive(typeStr)).getOrThrow(s -> UNKNOWN_AFFIX_TYPE.create(typeStr)).getFirst();
+
+        ItemStack stack = item.createItemStack(1);
+        LootCategory cat = LootCategory.forItem(stack);
+        Apotheosis.LOGGER.info("Affix weight dump target item: " + stack.toString());
+
+        GenContext ctx = GenContext.forPlayer(c.getSource().getPlayerOrException());
+        dumpWeightsFor(ctx, AffixRegistry.INSTANCE, afx -> afx.canApplyTo(stack, cat, rarity) && afx.definition().type() == type);
+        c.getSource().sendSuccess(() -> Component.literal("Weight values have been dumped to the log file."), true);
+        return 0;
+    }
+
+    private static record ItemAndWeight<T>(T item, int weight) {}
+}

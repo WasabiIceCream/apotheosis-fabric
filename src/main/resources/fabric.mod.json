@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "apotheosis",
+  "version": "${version}",
+
+  "name": "Apotheosis",
+  "description": "Unofficial Fabric port of Apotheosis's Adventure module (affixes, rarities, gems, sockets). Original mod by Shadows_of_Fire for NeoForge; this port covers only the Adventure module, not enchanting, spawners, or bosses.",
+  "authors": [
+    "Shadows_of_Fire (original NeoForge mod)"
+  ],
+
+  "license": "MIT",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.shadowsoffire.apotheosis.Apotheosis"
+    ],
+    "client": [
+      "dev.shadowsoffire.apotheosis.client.ApotheosisClient"
+    ],
+    "cardinal-components": [
+      "dev.shadowsoffire.apotheosis.tiers.WorldTierComponents",
+      "dev.shadowsoffire.apotheosis.util.ApothComponents"
+    ]
+  },
+  "custom": {
+    "cardinal-components": [
+      "apotheosis:world_tier",
+      "apotheosis:persistent_data",
+      "apotheosis:radial_mining_mode"
+    ]
+  },
+  "mixins": [
+    "apotheosis.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "fabric-api": "*",
+    "minecraft": ">=26.1",
+    "java": ">=25",
+    "cardinal-components-base": "*",
+    "cardinal-components-entity": "*",
+    "cardinal-components-item": "*"
+  }
+}

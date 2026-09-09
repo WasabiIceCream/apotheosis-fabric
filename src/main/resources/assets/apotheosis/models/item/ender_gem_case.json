@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "apotheosis:item/ender_gem_case_icon"
+  }
+}

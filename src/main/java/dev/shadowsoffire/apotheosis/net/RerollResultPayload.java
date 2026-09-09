@@ -1,0 +1,57 @@
+package dev.shadowsoffire.apotheosis.net;
+
+import java.util.Optional;
+
+import dev.shadowsoffire.apotheosis.Apotheosis;
+import dev.shadowsoffire.apotheosis.affix.Affix;
+import dev.shadowsoffire.apotheosis.affix.AffixRegistry;
+import dev.shadowsoffire.apotheosis.affix.augmenting.AugmentingScreen;
+import dev.shadowsoffire.placebo.dynreg.DynamicHolder;
+import dev.shadowsoffire.placebo.network.PayloadProvider;
+import io.netty.buffer.ByteBuf;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+
+/**
+ * Tells the open {@link AugmentingScreen} which affix a reroll picked, so it can re-select the
+ * matching entry in its affix dropdown.
+ */
+public record RerollResultPayload(DynamicHolder<Affix> newAffix) implements CustomPacketPayload {
+
+    public static final Type<RerollResultPayload> TYPE = new Type<>(Apotheosis.loc("reroll_result"));
+
+    public static final StreamCodec<ByteBuf, RerollResultPayload> CODEC = AffixRegistry.INSTANCE.holderStreamCodec().map(RerollResultPayload::new, RerollResultPayload::newAffix);
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static class Provider implements PayloadProvider<RerollResultPayload> {
+
+        @Override
+        public Type<RerollResultPayload> getType() {
+            return TYPE;
+        }
+
+        @Override
+        public StreamCodec<? super RegistryFriendlyByteBuf, RerollResultPayload> getCodec() {
+            return CODEC;
+        }
+
+        @Override
+        public void handleClient(RerollResultPayload msg, ClientPlayNetworking.Context ctx) {
+            AugmentingScreen.handleRerollResult(msg.newAffix());
+        }
+
+        @Override
+        public Optional<PacketFlow> getFlow() {
+            return Optional.of(PacketFlow.CLIENTBOUND);
+        }
+
+    }
+
+}

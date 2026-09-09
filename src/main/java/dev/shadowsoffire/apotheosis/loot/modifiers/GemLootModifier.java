@@ -1,0 +1,96 @@
+package dev.shadowsoffire.apotheosis.loot.modifiers;
+
+import java.util.List;
+import java.util.Set;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+
+import dev.shadowsoffire.apotheosis.Apotheosis;
+import dev.shadowsoffire.apotheosis.socket.gem.Gem;
+import dev.shadowsoffire.apotheosis.socket.gem.GemRegistry;
+import dev.shadowsoffire.apotheosis.socket.gem.Purity;
+import dev.shadowsoffire.apotheosis.tiers.GenContext;
+import dev.shadowsoffire.apotheosis.tiers.TieredWeights;
+import dev.shadowsoffire.apotheosis.util.LootPatternMatcher;
+import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
+import dev.shadowsoffire.placebo.dynreg.DynamicHolder;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.util.random.Weighted;
+import net.minecraft.util.random.WeightedRandom;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+
+public class GemLootModifier extends ContextualLootModifier {
+
+    public static final MapCodec<GemLootModifier> CODEC = RecordCodecBuilder.mapCodec(inst -> codecStart(inst)
+        .and(GemTableEntry.CODEC.listOf().fieldOf("entries").forGetter(g -> g.entries))
+        .apply(inst, GemLootModifier::new));
+
+    protected final List<GemTableEntry> entries;
+
+    public GemLootModifier(LootItemCondition[] conditions, int priority, List<GemTableEntry> entries) {
+        super(conditions, priority);
+        this.entries = entries;
+    }
+
+    @Override
+    protected ObjectArrayList<ItemStack> doApply(ObjectArrayList<ItemStack> generatedLoot, LootContext ctx, GenContext gCtx) {
+        net.minecraft.resources.Identifier queriedTable = dev.shadowsoffire.apotheosis.util.LootTableQueryTracker.current();
+        if (queriedTable == null) {
+            return generatedLoot;
+        }
+        for (GemTableEntry entry : this.entries) {
+            if (entry.pattern.matches(queriedTable)) {
+                if (ctx.getRandom().nextFloat() <= entry.chance()) {
+                    Purity purity = Purity.random(gCtx, entry.purities);
+
+                    Gem gem;
+                    if (!entry.gems.isEmpty()) {
+                        List<Weighted<Gem>> resolved = entry.gems.stream().mapMulti(TieredWeights.wrapFilterHolders(gCtx)).toList();
+                        gem = WeightedRandom.getRandomItem(ctx.getRandom(), resolved, Weighted::weight).get().value();
+                    }
+                    else {
+                        gem = GemRegistry.INSTANCE.getRandomItem(gCtx);
+                    }
+
+                    if (gem == null) {
+                        Apotheosis.LOGGER.error("A GemLootModifier (entry {}) failed to resolve a gem for table {}!", entry.toString(), queriedTable);
+                        continue;
+                    }
+
+                    generatedLoot.add(gem.toStack(purity));
+                }
+                break;
+            }
+        }
+        return generatedLoot;
+    }
+
+    @Override
+    public Codec<? extends GlobalLootModifier> getCodec() {
+        return CODEC.codec();
+    }
+
+    /**
+     * Represents a single table + application chance + optional sets of purities and gems for the {@link GemLootModifier}.
+     *
+     * @param pattern  The loot pattern matcher that determines which tables this entry applies to.
+     * @param chance   The chance of this entry applying, when a table is matched.
+     * @param gems     A pool of potential gems; if empty, all gems may be queried.
+     * @param purities A pool of potential purities; if empty, all purities may be queried.
+     */
+    public static record GemTableEntry(LootPatternMatcher pattern, float chance, Set<DynamicHolder<Gem>> gems, Set<Purity> purities) {
+
+        public static final Codec<GemTableEntry> CODEC = RecordCodecBuilder.create(inst -> inst.group(
+            LootPatternMatcher.CODEC.fieldOf("pattern").forGetter(GemTableEntry::pattern),
+            Codec.floatRange(0, 1).fieldOf("chance").forGetter(GemTableEntry::chance),
+            PlaceboCodecs.setOf(GemRegistry.INSTANCE.holderCodec()).optionalFieldOf("gems", Set.of()).forGetter(GemTableEntry::gems),
+            PlaceboCodecs.setOf(Purity.CODEC).optionalFieldOf("purities", Set.of()).forGetter(GemTableEntry::purities))
+            .apply(inst, GemTableEntry::new));
+
+    }
+
+}
