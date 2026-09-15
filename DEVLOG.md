@@ -1050,3 +1050,66 @@ immediately. This closes out every documented content gap in the Apotheosis
 Fabric port — the only remaining known gaps are purely cosmetic/asset ones
 (Gem Case GUI texture, reforging/augmenting floating 3D props), not behavior
 or content gaps.
+
+## 2026-09-15: `random_enchant` global loot modifier — genuinely non-upstream, server-specific content
+
+Server-side context (see the Server repo's own `docs/current-state.md`): the
+Gameoverse server disables villagers entirely — no village structures
+(`no-villages` datapack), `spawn-npcs=false`, the Better Mineshafts zombie
+villager cage disabled, and the Woodland Mansion hostage-villager room
+removed via a datapack override. That makes vanilla's Curse of Binding and
+Curse of Vanishing genuinely unobtainable: their only vanilla source is
+librarian trading, confirmed by grepping every vanilla loot table and every
+installed mod's bundled loot data directly — zero other hits for either
+enchantment anywhere.
+
+Rather than special-case just those two, the user asked for the broadest
+possible fix: any enchantment any currently- or future-installed mod adds
+should be eligible too, not just a hardcoded pair. Added a new
+`GlobalLootModifier` type, `apotheosis:random_enchant`
+(`RandomEnchantLootModifier.java`, registered in
+`GlobalLootModifierRegistry`): for each loot table matching a configured
+pattern, every already-generated item that's still enchant-slot-empty
+(`ItemStack#isEnchantable()`) gets an independent chance to roll a random
+enchantment. Deliberately reuses vanilla's own
+`EnchantRandomlyFunction.randomApplicableEnchantment(registries)` — the exact
+helper vanilla's own loot tables use for "roll any enchantment appropriate
+for this item" — instead of reimplementing compatibility/leveling logic.
+That helper pulls from whatever's tagged `#minecraft:on_random_loot` in the
+live registry, which vanilla already populates with `binding_curse`,
+`vanishing_curse`, `frost_walker`, `mending`, plus `#minecraft:non_treasure`
+(everything else) — checked directly in `data/minecraft/tags/enchantment/
+on_random_loot.json`. Any mod's own custom enchantment automatically becomes
+eligible too, the moment that mod tags it into `on_random_loot`, with zero
+special-casing needed here — this is what makes the fix genuinely
+integrate with the rest of the modpack's content rather than just patching
+two specific IDs.
+
+Configured via `data/apotheosis/apotheosis/loot_modifier/random_enchant.json`:
+a 3% independent per-item chance, matching literally every loot table
+(`"pattern": {"path_regex": ".*"}`) as a deliberately broad starting default —
+easy to narrow to specific domains/patterns later if 3%-on-everything turns
+out too generous or too sparse in practice. Runs at priority 900, just below
+`affix_loot_injection`'s 1050, so it can also roll on a freshly-Apotheosis-affixed
+item in the same loot generation (affixes are a separate data component from
+vanilla enchantments, so `isEnchantable()` still reports true for those).
+
+**Explicitly out of upstream Apotheosis's scope, and that's fine here**: the
+user confirmed this repo's public existence is specifically so AutoModpack's
+"unverified jar" warning can be checked against real source — not to stay a
+byte-faithful port — so genuinely server-specific features like this one are
+welcome additions, not something to keep out of the public repo.
+
+Boot-tested locally: `apotheosis:loot_modifier` count went 6 → 7, registers
+with zero errors, clean boot. First build attempt silently produced a jar
+**missing** the new datapack JSON file (`Registered 6 apotheosis:loot_modifier`,
+not 7) — a stale incremental-build cache issue in Gradle, not a code or path
+bug; `./gradlew clean build` picked it up correctly. Worth remembering: after
+adding a brand-new resource file (not editing an existing one), a plain
+`build` can silently skip it — verify the file actually landed in the built
+jar (`unzip -l ... | grep ...`) before trusting a "successful" build that
+adds new resources, or just default to `clean build` for those cases.
+**Not statistically verified in-game**: no connectable client in this dev
+environment and local RCON is disabled, so the actual roll behavior wasn't
+observed directly — `/loot give @s loot <table>` repeated against production
+would be the real way to confirm it.
