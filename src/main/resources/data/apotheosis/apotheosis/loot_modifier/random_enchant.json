@@ -1,0 +1,13 @@
+{
+    "type": "apotheosis:random_enchant",
+    "conditions": [],
+    "entries": [
+        {
+            "chance": 0.03,
+            "pattern": {
+                "path_regex": ".*"
+            }
+        }
+    ],
+    "priority": 900
+}

@@ -39,6 +39,8 @@ public class GlobalLootModifierRegistry extends DynamicRegistry<GlobalLootModifi
         serializer.register(Apotheosis.loc("affix_conversion"), dev.shadowsoffire.apotheosis.loot.modifiers.AffixConvertLootModifier.CODEC.codec());
         serializer.register(Apotheosis.loc("code_hook"), dev.shadowsoffire.apotheosis.loot.modifiers.AffixHookLootModifier.CODEC.codec());
         serializer.register(Apotheosis.loc("gems"), dev.shadowsoffire.apotheosis.loot.modifiers.GemLootModifier.CODEC.codec());
+        // Server-specific, not upstream Apotheosis content — see RandomEnchantLootModifier's javadoc.
+        serializer.register(Apotheosis.loc("random_enchant"), dev.shadowsoffire.apotheosis.loot.modifiers.RandomEnchantLootModifier.CODEC.codec());
         return serializer;
     }
 
