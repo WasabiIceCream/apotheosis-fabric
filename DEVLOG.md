@@ -880,3 +880,173 @@ reforging/augmenting floating 3D props (both asset gaps, not code bugs);
 actual gameplay testing (a client was never connected — this was a
 dedicated-server boot-and-stay-up test only, driven from a headless
 environment with no display).
+
+## 2026-09-15: `armor/attribute/aquatic` remapped to an installed mod's attribute
+
+After `placebo-fabric`'s `RegistryOps` fix (see that project's DEVLOG) got
+`affixes` to 68/70, the two remaining affix failures were `aquatic` and
+`unbound`, both referencing genuine NeoForge-only attributes
+(`neoforge:swim_speed`/`neoforge:creative_flight`) that were never registered
+on Fabric — not a codec bug, a missing-content one.
+
+Checked whether any mod already in this server's modpack (not
+`apothic_attributes`/`apothic_enchanting` — still explicitly out of scope,
+see above) happens to register an equivalent attribute we could point at
+instead of dropping the content. Found one: **Artifacts**
+(`artifacts-fabric-15.1.3.jar`, already installed) registers its own
+`artifacts:swim_speed` attribute — decompiled `artifacts.registry.ModAttributes`/
+`ModAttributesFabric` to confirm the exact registry id and its base
+value/range (`1.0` base, `0.0`–`1024.0`, multiplicative — the same convention
+NeoForge's own `swim_speed` uses), and confirmed Artifacts implements it via
+its own `LivingEntity` mixin (`artifacts.fabric.mixin.attribute.swimspeed`),
+so it's a real, functioning attribute on Fabric, not just a registered-but-inert
+id. Remapped `aquatic.json`'s `"attribute"` field from `neoforge:swim_speed` to
+`artifacts:swim_speed` — no other change needed, since the existing
+`add_multiplied_total` operation and `0.2`–`0.7` value ranges already assumed a
+multiplicative, base-1.0 attribute, which is exactly what Artifacts' version is
+too.
+
+This makes `aquatic` (and this port generally) soft-depend on Artifacts being
+installed — acceptable since Artifacts is already a permanent part of this
+server's curated modpack, same as Cardinal Components or Balm, which this port
+already assumes. Made that assumption visible instead of silent: added
+`"artifacts": "*"` under a new `"recommends"` block in `fabric.mod.json`, so
+Fabric Loader prints the same "recommends X, which is missing" warning at boot
+we already see for things like modmenu, if Artifacts is ever removed — the
+affix itself would just fail to parse again (same non-fatal degrade as today),
+not crash anything.
+
+**`unbound` (creative flight) has no equivalent and was left alone.** Checked
+every installed mod's lang files and bytecode for an attribute that grants
+flight; none exist. NeoForge's `creative_flight` attribute works because
+NeoForge itself patches player-ability-tick code to check that attribute value
+and toggle `abilities.flying`/`mayfly` — an engine-level hook, not a number.
+Reproducing it would mean writing that hook ourselves (a mixin into `Player`'s
+ability tick honoring a custom attribute), a real feature port on its own, not
+a remap. Not done here.
+
+Confirmed on a local `fabric 26.1/` boot test: `apotheosis:affixes` now
+**69/70** (up from 68/70), `gems` unchanged at `3/4`. Only `unbound` and
+`the_end/endersurge` remain — both genuinely out of scope, not bugs.
+
+## 2026-09-15: World Tier `summit`/`pinnacle` boss-kill requirements swapped back
+
+The user recalled swapping which boss each World Tier advancement requires at
+some earlier point and asked to revert it: `data/apotheosis/advancement/
+progression/summit.json` (the "Summit" tier, gated on a full set of Rare gear)
+had `kill_ender_dragon`; `progression/pinnacle.json` (the "Pinnacle" tier,
+gated on Epic/Mythic gear, the harder/later tier) had `kill_wither`. Swapped
+so `summit` now requires `kill_wither` and `pinnacle` requires
+`kill_ender_dragon` — the Ender Dragon kill now gates the *later* tier, which
+also matches it being the vanilla "final boss" relative to the Wither.
+Nothing in `mod-dev/apotheosis-fabric`'s own Java source hardcodes either
+boss — this is purely datapack-driven (grepped for `ender_dragon`/`wither` in
+`src/main/java`, no hits outside unrelated `withering`/`witherlord`-style
+affix names) — so the fix is scoped to the two advancement JSON files plus
+their `en_us.json` strings (both the per-criterion "Slay the X" lines and
+`pinnacle.desc`'s "requires slaying the Wither" text, which also named the
+boss explicitly; `summit.desc`'s vaguer "free the End" was reworded to name
+the Wither directly, matching `pinnacle.desc`'s style, since it no longer
+requires the dragon). Only one lang file exists (`en_us.json`), no other
+locales to update.
+
+Confirmed on a local `fabric 26.1/` boot test: server reaches `Done` clean;
+`apotheosis:progression/summit` and `progression/pinnacle` don't appear in the
+(pre-existing, unrelated) "Couldn't load advancements" list — that list is
+entirely `endrem:main/*_eye` entries, a different mod's known gap (see
+`docs/current-state.md`).
+
+## 2026-09-15: `the_end/endersurge` fixed — `GemClass` now supports NeoForge's `"any"` wildcard
+
+Last remaining gem failure. `endersurge`'s Sharpness bonus uses NeoForge's
+`{"type": "neoforge:any"}` wildcard for its `gem_class.types` field — NeoForge's
+own holder-set system adds a small family of any/all/and/or/not combinators on
+top of vanilla's; `"any"` means "every `LootCategory`, don't make me list
+them." Vanilla/Fabric's holder-set codec has no such wildcard concept, so
+there was nothing to port the combinator itself to. But unlike the
+`Registries.ENCHANTMENT`/tag-order issues elsewhere in this port,
+`BuiltInRegs.LOOT_CATEGORY` is a registry this port owns outright (a real
+`BuiltInRegistries`-style registry, not a datapack-driven dynamic one, per
+point 4 in the earlier registry-load-tally section) — so "every value in it"
+is just a concrete, finite, enumerable list, not something requiring
+`RegistryOps`/`HolderLookup` context at all.
+
+Fixed by special-casing the wildcard directly in `GemClass`'s `"types"` codec
+(`GemClass.java`): try decoding `{"type": "neoforge:any"}` first (only that
+exact string — any other value, i.e. one of NeoForge's other combinators,
+fails with an explicit "Unsupported gem class wildcard type" error rather than
+silently matching the wrong things, since none of those other combinators are
+used by any ported content), and fall back to the existing explicit-list
+codec otherwise. The wildcard expands to `BuiltInRegs.LOOT_CATEGORY.listElements()`
+— every currently-registered `LootCategory` — wrapped in `HolderSet.direct(...)`.
+Encode direction is intentionally asymmetric (always encodes back out as an
+explicit list, never re-collapses to the wildcard shape) since nothing in this
+port ever encodes a `GemClass` — verified by grepping for `GemClass`/`Gem`
+`encodeStart`/`.encode(` calls, no hits.
+
+Confirmed on a local `fabric 26.1/` boot test: `apotheosis:gems` now
+**4/4** (up from 3/4) — `endersurge` loads with no error. `affixes` unchanged
+at `69/70`. Only `armor/attribute/unbound` remains, and it's genuinely out of
+scope (see the 2026-09-15 `aquatic`/`unbound` entry above) — every other
+known gap in this port's datapack content is now resolved.
+
+## 2026-09-15: `armor/attribute/unbound` fixed too — the creative-flight engine hook, implemented
+
+The user asked for this specifically, after the earlier entry called it out as
+needing new engine-level work rather than a datapack/codec fix. NeoForge's real
+`neoforge:creative_flight` attribute works because NeoForge itself patches
+player-ability-tick code to read it and toggle `Abilities#mayfly` — an actual
+behavior hook, not a value Fabric could ever just resolve by registering the
+right id.
+
+Re-registered as `apotheosis:creative_flight` in `Apoth.CustomAttributes`
+(0.0–1.0 range, boolean-style — `>= 0.5` means "grant flight"), same treatment
+as the three Apothic-Attributes attributes documented just above it, added to
+every `LivingEntity` via the existing `LivingEntityAttributesMixin` (same
+mixin, no new one needed for registration). The actual behavior lives in a new
+`ServerPlayerCreativeFlightMixin`, injecting at the `TAIL` of
+`ServerPlayer#tick()` — deliberately modeled on vanilla's own
+`ServerPlayer#updatePlayerAttributes()` (found by decompiling `ServerPlayer`
+with Vineflower), which does the exact same "read an attribute every tick,
+toggle a transient behavior" pattern already, just for
+`Attributes.BLOCK_INTERACTION_RANGE`/creative reach instead. Two safety rules
+baked in since this touches shared player state: (1) it never runs at all for
+players already in creative or spectator mode — those already have real
+flight through a completely different path, and must never be interfered
+with; (2) it only ever *revokes* a grant it made itself, tracked via a
+`@Unique` `apoth$grantedFlight` boolean on the mixin — so an admin's own fly
+permission (e.g. the LuckPerms-driven `admin` group `fly`/`fly.flag` grant
+documented in `docs/current-state.md`) is never touched by a player simply
+un-equipping the affixed chestplate. `unbound.json`'s `"attribute"` field
+remapped from `neoforge:creative_flight` to `apotheosis:creative_flight` to
+match.
+
+**Also found and fixed while testing this**: with `unbound` finally decoding
+successfully for the first time, a previously-invisible second bug surfaced —
+`"exclusive_set": ["apotheosis:armor/attribute/winged"]` referenced an affix
+(`winged`) that was never ported and doesn't exist in this port at all,
+logging `The affix apotheosis:armor/attribute/unbound contains the unknown
+affix apotheosis:armor/attribute/winged in its exclusive set!` on every boot
+(non-fatal — the affix still registers — but a real dangling reference,
+invisible before now since `unbound` never successfully registered to reach
+that validation check). Removed the phantom entry (`"exclusive_set": []`)
+rather than porting `winged` itself, matching this port's existing precedent
+of dropping unreachable content rather than faking it.
+
+Confirmed on a local `fabric 26.1/` boot test: `apotheosis:affixes` now
+**70/70** — every ported affix loads. `gems` unchanged at `4/4`. Zero
+apotheosis-related errors of any kind on boot. Deployed to production and
+restarted by the user; confirmed via production's own log: `affixes 70/70`,
+`gems 4/4`, clean boot, zero apotheosis errors.
+
+**In-game playtest done same day**: gave the user a test item live on the
+server via
+`/give <player> minecraft:netherite_chestplate 1` →
+`/apoth set_rarity apotheosis:mythic` →
+`/apoth affix apply apotheosis:armor/attribute/unbound 1` (each `/apoth`
+command operates on whatever's in the main hand, so rarity/affix must be set
+before equipping). Confirmed working: equipping the item granted flight
+immediately. This closes out every documented content gap in the Apotheosis
+Fabric port — the only remaining known gaps are purely cosmetic/asset ones
+(Gem Case GUI texture, reforging/augmenting floating 3D props), not behavior
+or content gaps.
