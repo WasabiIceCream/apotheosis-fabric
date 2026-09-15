@@ -1,14 +1,14 @@
 {
     "parent": "apotheosis:progression/ascent",
     "criteria": {
-        "kill_ender_dragon": {
+        "kill_wither": {
             "conditions": {
                 "entity": [
                     {
                         "condition": "minecraft:entity_properties",
                         "entity": "this",
                         "predicate": {
-                            "type": "minecraft:ender_dragon"
+                            "type": "minecraft:wither"
                         }
                     }
                 ]
@@ -131,7 +131,7 @@
             "rare_hand"
         ],
         [
-            "kill_ender_dragon"
+            "kill_wither"
         ]
     ],
     "sends_telemetry_event": true

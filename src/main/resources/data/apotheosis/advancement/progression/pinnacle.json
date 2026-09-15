@@ -81,14 +81,14 @@
             },
             "trigger": "apotheosis:equipped_item"
         },
-        "kill_wither": {
+        "kill_ender_dragon": {
             "conditions": {
                 "entity": [
                     {
                         "condition": "minecraft:entity_properties",
                         "entity": "this",
                         "predicate": {
-                            "type": "minecraft:wither"
+                            "type": "minecraft:ender_dragon"
                         }
                     }
                 ]
@@ -126,7 +126,7 @@
             "epic_hand"
         ],
         [
-            "kill_wither"
+            "kill_ender_dragon"
         ]
     ],
     "sends_telemetry_event": true
