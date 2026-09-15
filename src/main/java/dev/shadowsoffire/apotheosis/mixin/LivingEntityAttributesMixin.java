@@ -25,7 +25,8 @@ public class LivingEntityAttributesMixin {
         cir.getReturnValue()
             .add(Apoth.CustomAttributes.EXPERIENCE_GAINED)
             .add(Apoth.CustomAttributes.ARMOR_PIERCE)
-            .add(Apoth.CustomAttributes.PROT_PIERCE);
+            .add(Apoth.CustomAttributes.PROT_PIERCE)
+            .add(Apoth.CustomAttributes.CREATIVE_FLIGHT);
     }
 
 }

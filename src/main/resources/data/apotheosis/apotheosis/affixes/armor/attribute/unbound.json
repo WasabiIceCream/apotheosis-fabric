@@ -1,14 +1,12 @@
 {
     "type": "apotheosis:attribute",
-    "attribute": "neoforge:creative_flight",
+    "attribute": "apotheosis:creative_flight",
     "categories": [
         "apotheosis:chestplate"
     ],
     "definition": {
         "affix_type": "stat",
-        "exclusive_set": [
-            "apotheosis:armor/attribute/winged"
-        ],
+        "exclusive_set": [],
         "weights": {
             "pinnacle": {
                 "quality": 0.2,

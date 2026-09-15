@@ -193,11 +193,23 @@ public class Apoth {
      * {@code max_eterna}, is NOT re-created here — it's tied to that mod's "Eternal" enchantment
      * mechanic (a whole unported enchantment, not a simple numeric buff), so those 4
      * {@code tier_augments} entries were dropped entirely rather than faked.
+     * <p>
+     * Port note (NeoForge -> Fabric, added later): the same treatment applies to
+     * {@code armor/attribute/unbound}'s {@code neoforge:creative_flight} — a NeoForge-core
+     * attribute (not Apothic-Attributes'), meaningless on Fabric since NeoForge itself patches
+     * player-ability-tick code to read it. Re-registered here as {@code CREATIVE_FLIGHT} (0.0-1.0,
+     * boolean-style: >= 0.5 means "grant flight") with the actual behavior restored via
+     * {@code ServerPlayerCreativeFlightMixin}, which mirrors vanilla's own
+     * {@code ServerPlayer#updatePlayerAttributes()} pattern (reading
+     * {@code Attributes.BLOCK_INTERACTION_RANGE} every tick to toggle creative-only reach) but for
+     * this attribute instead, toggling {@code Abilities#mayfly} for non-creative, non-spectator
+     * players only, and only ever revoking a grant it made itself.
      */
     public static final class CustomAttributes {
         public static final Holder<net.minecraft.world.entity.ai.attributes.Attribute> EXPERIENCE_GAINED = R.rangedAttribute("experience_gained", 0.0, 0.0, 1024.0);
         public static final Holder<net.minecraft.world.entity.ai.attributes.Attribute> ARMOR_PIERCE = R.rangedAttribute("armor_pierce", 0.0, 0.0, 1024.0);
         public static final Holder<net.minecraft.world.entity.ai.attributes.Attribute> PROT_PIERCE = R.rangedAttribute("prot_pierce", 0.0, 0.0, 1024.0);
+        public static final Holder<net.minecraft.world.entity.ai.attributes.Attribute> CREATIVE_FLIGHT = R.rangedAttribute("creative_flight", 0.0, 0.0, 1.0);
 
         private static void bootstrap() {}
     }

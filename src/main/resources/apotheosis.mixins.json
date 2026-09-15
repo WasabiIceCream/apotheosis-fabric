@@ -13,7 +13,8 @@
     "LivingEntityAttributesMixin",
     "CombatRulesMixin",
     "PlayerExperienceMixin",
-    "MobSpawnAugmentMixin"
+    "MobSpawnAugmentMixin",
+    "ServerPlayerCreativeFlightMixin"
   ],
   "client": [
     "ClientAdvancementsAccessor"
