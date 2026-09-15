@@ -42,5 +42,8 @@
     "cardinal-components-base": "*",
     "cardinal-components-entity": "*",
     "cardinal-components-item": "*"
+  },
+  "recommends": {
+    "artifacts": "*"
   }
 }
