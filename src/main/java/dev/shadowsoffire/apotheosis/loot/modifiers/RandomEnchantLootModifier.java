@@ -1,12 +1,14 @@
 package dev.shadowsoffire.apotheosis.loot.modifiers;
 
 import java.util.List;
+import java.util.Map;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import dev.shadowsoffire.apotheosis.tiers.GenContext;
+import dev.shadowsoffire.apotheosis.tiers.WorldTier;
 import dev.shadowsoffire.apotheosis.util.LootPatternMatcher;
 import dev.shadowsoffire.apotheosis.util.LootTableQueryTracker;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -36,6 +38,10 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
  * for (has an {@code ENCHANTABLE} component and no existing vanilla enchantments yet) — an
  * Apotheosis-affixed item is untouched by this check since affixes are a separate data component,
  * not a vanilla enchantment.
+ * <p>
+ * Chance is per-{@link WorldTier}, matching this port's existing {@code TieredWeights} convention
+ * (a tier not listed defaults to 0 — no roll at all), so this can be tuned to only kick in at
+ * higher tiers, or scale up with tier, independently of Apotheosis's own rarity/affix generosity.
  */
 public class RandomEnchantLootModifier extends ContextualLootModifier {
 
@@ -58,11 +64,14 @@ public class RandomEnchantLootModifier extends ContextualLootModifier {
         }
         for (TableEntry entry : this.entries) {
             if (entry.pattern().matches(queriedTable)) {
-                LootItemFunction fn = EnchantRandomlyFunction.randomApplicableEnchantment(ctx.getLevel().registryAccess()).build();
-                for (int i = 0; i < generatedLoot.size(); i++) {
-                    ItemStack stack = generatedLoot.get(i);
-                    if (stack.isEnchantable() && ctx.getRandom().nextFloat() <= entry.chance()) {
-                        generatedLoot.set(i, fn.apply(stack, ctx));
+                float chance = entry.chanceFor(gCtx.tier());
+                if (chance > 0) {
+                    LootItemFunction fn = EnchantRandomlyFunction.randomApplicableEnchantment(ctx.getLevel().registryAccess()).build();
+                    for (int i = 0; i < generatedLoot.size(); i++) {
+                        ItemStack stack = generatedLoot.get(i);
+                        if (stack.isEnchantable() && ctx.getRandom().nextFloat() <= chance) {
+                            generatedLoot.set(i, fn.apply(stack, ctx));
+                        }
                     }
                 }
                 break;
@@ -78,14 +87,20 @@ public class RandomEnchantLootModifier extends ContextualLootModifier {
 
     /**
      * @param pattern The loot pattern matcher that determines which tables this entry applies to.
-     * @param chance  The independent, per-eligible-item chance of rolling a random enchantment, when a table is matched.
+     * @param chance  The independent, per-eligible-item chance of rolling a random enchantment, per
+     *                {@link WorldTier}, when a table is matched. A tier not present in the map rolls
+     *                no chance at all (defaults to 0).
      */
-    public static record TableEntry(LootPatternMatcher pattern, float chance) {
+    public static record TableEntry(LootPatternMatcher pattern, Map<WorldTier, Float> chance) {
 
         public static final Codec<TableEntry> CODEC = RecordCodecBuilder.create(inst -> inst.group(
             LootPatternMatcher.CODEC.fieldOf("pattern").forGetter(TableEntry::pattern),
-            Codec.floatRange(0, 1).fieldOf("chance").forGetter(TableEntry::chance))
+            WorldTier.mapCodec(Codec.floatRange(0, 1)).codec().fieldOf("chance").forGetter(TableEntry::chance))
             .apply(inst, TableEntry::new));
+
+        public float chanceFor(WorldTier tier) {
+            return this.chance.getOrDefault(tier, 0F);
+        }
 
     }
 }

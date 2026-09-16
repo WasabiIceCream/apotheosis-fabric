@@ -3,7 +3,13 @@
     "conditions": [],
     "entries": [
         {
-            "chance": 0.03,
+            "chance": {
+                "haven": 0.01,
+                "frontier": 0.02,
+                "ascent": 0.03,
+                "summit": 0.04,
+                "pinnacle": 0.05
+            },
             "pattern": {
                 "path_regex": ".*"
             }
