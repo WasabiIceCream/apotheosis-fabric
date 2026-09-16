@@ -51,20 +51,20 @@
     "sort_index": 500,
     "weights": {
         "haven": {
-            "quality": 5.0,
-            "weight": 40
+            "quality": 2.0,
+            "weight": 15
         },
         "frontier": {
-            "quality": 5.0,
-            "weight": 100
+            "quality": 2.5,
+            "weight": 65
         },
         "ascent": {
-            "quality": 2.5,
-            "weight": 500
+            "quality": 1.5,
+            "weight": 320
         },
         "summit": {
-            "quality": 2.5,
-            "weight": 290
+            "quality": 1.5,
+            "weight": 200
         },
         "pinnacle": {
             "weight": 100

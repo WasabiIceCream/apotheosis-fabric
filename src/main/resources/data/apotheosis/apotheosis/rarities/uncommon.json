@@ -42,17 +42,17 @@
     "sort_index": 400,
     "weights": {
         "haven": {
-            "quality": 2.5,
-            "weight": 360
+            "quality": 1.2,
+            "weight": 220
         },
         "frontier": {
-            "weight": 600
+            "weight": 420
         },
         "ascent": {
-            "weight": 300
+            "weight": 200
         },
         "summit": {
-            "weight": 120
+            "weight": 80
         },
         "pinnacle": {
             "weight": 0
