@@ -1113,3 +1113,47 @@ adds new resources, or just default to `clean build` for those cases.
 environment and local RCON is disabled, so the actual roll behavior wasn't
 observed directly — `/loot give @s loot <table>` repeated against production
 would be the real way to confirm it.
+
+## 2026-09-15 (same day, remote follow-up): `random_enchant` scaled by tier; Haven/Frontier rarity generosity toned down
+
+Two follow-up requests from the user after reviewing the loot modifier: (1)
+was the 3% roll tied to World Tier at all, and (2) separately, Apotheosis's
+own rarity generosity felt too high — they were already finding "really good
+stuff" at Haven.
+
+**(1)**: it wasn't — `RandomEnchantLootModifier.doApply` never read
+`gCtx.tier()`/`gCtx.luck()` at all, just a flat `entry.chance()`. Changed
+`TableEntry.chance` from a single `float` to `Map<WorldTier, Float>` (codec:
+`WorldTier.mapCodec(Codec.floatRange(0, 1)).codec().fieldOf("chance")`,
+matching this port's existing `TieredWeights` per-tier convention — a tier
+missing from the map now rolls a 0% chance, not an error). `doApply` now
+looks up `entry.chanceFor(gCtx.tier())` before rolling. `random_enchant.json`
+now specifies haven 1% → pinnacle 5%, a straight linear ramp, in place of the
+old flat 3%.
+
+**(2)**: pulled the real numbers from `data/apotheosis/apotheosis/rarities/
+{uncommon,rare}.json` to show the user exactly why — Haven's `rare` had
+weight `40` + quality `5.0`, Frontier's had weight `100` + quality `5.0`,
+both quite large relative to their tier's total pool (Haven: common 600 +
+uncommon 360 + rare 40 = 1000, i.e. rare was already 4% *before* any luck
+bonus, and quality 5.0 meant luck could push that meaningfully higher at the
+very first tier). The user chose "moderate" cuts, applied to `uncommon`/
+`rare` across **all five tiers**, not just Haven — roughly halved quality
+(luck scaling) and trimmed weight 35–60%, heaviest at Haven/Frontier where
+each rarity was most disproportionate to its tier:
+- `uncommon`: haven `360→220`/quality `2.5→1.2`, frontier `600→420`, ascent
+  `300→200`, summit `120→80`, pinnacle unchanged (`0`).
+- `rare`: haven `40→15`/quality `5.0→2.0`, frontier `100→65`/quality
+  `5.0→2.5`, ascent `500→320`/quality `2.5→1.5`, summit `200→200`(from `290`)
+  /quality `2.5→1.5`, pinnacle unchanged (`100`, no quality).
+
+`common`/`epic`/`mythic` weights untouched — the complaint was specifically
+about rare/uncommon feeling too available too early, not the overall curve
+shape.
+
+Boot-tested locally for both changes together: `apotheosis:rarities` still
+registers all 5, `loot_modifier` count unchanged at 7, zero errors, clean
+boot. Committed as two separate commits (tier-scaling, then rarity tuning)
+and pushed. Game-balance numbers, not a bug fix — worth revisiting again if
+Haven/Frontier still feel off in practice; these are starting adjustments; not
+a claim they're perfectly tuned.
