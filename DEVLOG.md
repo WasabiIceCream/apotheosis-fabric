@@ -6,9 +6,10 @@ by Shadows_of_Fire, originally NeoForge-only. MIT licensed upstream — see
 `LICENSE`.
 
 **Not in scope**: Apothic-Enchanting (full enchanting overhaul), Apothic-Spawners,
-Gateways (boss portals), Apothic-Attributes as a dependency. See the plan this
-port is following: `/home/wasabi/.claude/plans/spicy-meandering-fern.md` for
-the full research, scope rationale, and NeoForge→Fabric API mapping table.
+Gateways (boss portals), Apothic-Attributes as a dependency. This scoping was
+worked out ahead of time in a separate planning pass covering the full
+research, scope rationale, and NeoForge→Fabric API mapping table (not
+included in this repo).
 
 ## Status (2026-09-07)
 
@@ -132,17 +133,16 @@ to ease diffing against upstream.
 
 ## Reference material
 
-- Upstream source (cloned read-only, not part of this project):
-  `/home/wasabi/.claude/jobs/3392433d/tmp/apotheosis_research/apotheosis/` —
+- Upstream source (cloned read-only for research, not part of this project):
   the actual `26.1` branch of Apotheosis, used to measure scope and read the
   real NeoForge API usage before porting anything.
 - Zenith Renewed (community Fabric fork, stuck at MC 1.20, unofficial/closed
-  process but MIT and open-source): `/home/wasabi/.claude/jobs/3392433d/tmp/apotheosis_research/zenith/` —
-  read as a reference for Fabric-API mapping decisions (Cardinal Components
-  usage, mixin targets for the enchantment-level-query gap), not copied
-  wholesale. Its own `adventure` package (135 files) closely matches this
-  port's scope, which is reassuring cross-validation of the boundary, not a
-  guarantee its implementation is correct or complete.
+  process but MIT and open-source), read as a reference for Fabric-API
+  mapping decisions (Cardinal Components usage, mixin targets for the
+  enchantment-level-query gap), not copied wholesale. Its own `adventure`
+  package (135 files) closely matches this port's scope, which is
+  reassuring cross-validation of the boundary, not a guarantee its
+  implementation is correct or complete.
 
 Both of the above are scratch clones under this session's job tmp directory,
 not durable — if picking this project back up in a future session and they're
