@@ -44,6 +44,20 @@ public class ApotheosisClient implements ClientModInitializer {
             handler.send(new ServerboundClientCommandPacket(ServerboundClientCommandPacket.Action.REQUEST_STATS));
         });
 
+        // Port note (bugfix, 2026-09-25): the three recipe caches below were declared but never
+        // filled, so the Salvaging, Gem Cutting and Reforging screens could never match a recipe
+        // on the client ("No items selected"). Upstream fills them from NeoForge's recipe sync.
+        net.fabricmc.fabric.api.client.recipe.v1.sync.ClientRecipeSynchronizedEvent.EVENT.register((mc, recipes) -> {
+            dev.shadowsoffire.apotheosis.affix.salvaging.SalvagingRecipeCache.rebuild(recipes.getAllOfType(Apoth.RecipeTypes.SALVAGING));
+            dev.shadowsoffire.apotheosis.socket.gem.cutting.GemCuttingRecipeCache.rebuild(recipes.getAllOfType(Apoth.RecipeTypes.GEM_CUTTING));
+            dev.shadowsoffire.apotheosis.affix.reforging.ReforgingRecipeCache.rebuild(recipes.getAllOfType(Apoth.RecipeTypes.REFORGING));
+        });
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            dev.shadowsoffire.apotheosis.affix.salvaging.SalvagingRecipeCache.clear();
+            dev.shadowsoffire.apotheosis.socket.gem.cutting.GemCuttingRecipeCache.clear();
+            dev.shadowsoffire.apotheosis.affix.reforging.ReforgingRecipeCache.clear();
+        });
+
         Apotheosis.LOGGER.info("Apotheosis client (Fabric Adventure port) initializing");
     }
 

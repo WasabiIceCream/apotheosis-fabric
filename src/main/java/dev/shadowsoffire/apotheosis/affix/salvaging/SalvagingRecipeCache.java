@@ -23,6 +23,11 @@ public final class SalvagingRecipeCache {
         RECIPES = List.copyOf(holders);
     }
 
+    /** Fills the cache from Fabric's client recipe sync (see ApotheosisClient). */
+    public static void rebuild(Collection<RecipeHolder<SalvagingRecipe>> holders) {
+        RECIPES = List.copyOf(holders);
+    }
+
     public static void clear() {
         RECIPES = List.of();
     }

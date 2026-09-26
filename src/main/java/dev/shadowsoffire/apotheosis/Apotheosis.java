@@ -37,6 +37,13 @@ public class Apotheosis implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> currentServer = server);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> currentServer = null);
         Apoth.bootstrap();
+        // 26.1 no longer sends recipes to clients. The salvaging, gem cutting and reforging
+        // screens match recipes client-side, so opt their serializers into Fabric's recipe
+        // sync; ApotheosisClient fills the client caches when they arrive.
+        for (var serializer : java.util.List.of(Apoth.RecipeSerializers.SALVAGING, Apoth.RecipeSerializers.REFORGING,
+            Apoth.RecipeSerializers.BASIC_GEM_CUTTING, Apoth.RecipeSerializers.PURITY_UPGRADE)) {
+            net.fabricmc.fabric.api.recipe.v1.sync.RecipeSynchronization.synchronizeRecipeSerializer(serializer.value());
+        }
         // Custom recipe ingredients for the salvaging recipes (upstream: NeoForge ingredient types).
         net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer.register(dev.shadowsoffire.apotheosis.util.AffixItemIngredient.SERIALIZER);
         net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer.register(dev.shadowsoffire.apotheosis.util.GemIngredient.SERIALIZER);
