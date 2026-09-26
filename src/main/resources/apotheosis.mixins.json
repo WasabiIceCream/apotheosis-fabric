@@ -14,7 +14,8 @@
     "CombatRulesMixin",
     "PlayerExperienceMixin",
     "MobSpawnAugmentMixin",
-    "ServerPlayerCreativeFlightMixin"
+    "ServerPlayerCreativeFlightMixin",
+    "AnvilGemSmashingMixin"
   ],
   "client": [
     "ClientAdvancementsAccessor"

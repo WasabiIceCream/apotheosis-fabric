@@ -1157,3 +1157,37 @@ boot. Committed as two separate commits (tier-scaling, then rarity tuning)
 and pushed. Game-balance numbers, not a bug fix — worth revisiting again if
 Haven/Frontier still feel off in practice; these are starting adjustments; not
 a claim they're perfectly tuned.
+
+## 0.2.0 (2026-09-25): upstream's generated recipes, block loot, gem smashing
+
+Found by the Gameoverse Guide accuracy audit: the port shipped only the 8 recipe
+JSONs that live in upstream's `src/main/resources`. Everything upstream builds with
+datagen (`src/generated/resources`) had never been copied, so the Salvaging, Gem
+Cutting, Reforging, Simple Reforging and Augmenting Tables, the Gem Case, Gem-Fused
+Slate and four Sigils had no recipe, and nothing could be salvaged, cut or
+reforged. On the Gameoverse server that made every Salvage Material unobtainable,
+and our salvage-gate datapack needs one to enter the Frontier World Tier.
+
+Ported from upstream `26.1` (`ae0ef78`):
+- 11 root recipes (the five tables, gem case, gem-fused slate, sigils of
+  enhancement/rebirth/socketing/withdrawal), and the whole `gem_cutting/` (5),
+  `reforging/` (5) and `salvaging/` (37) folders. Skipped: `smithing/` and the three
+  upgrade-template recipes (the templates aren't registered in this port),
+  `widthdrawal.json` (duplicate of our `withdrawal.json`), and every recipe gated on
+  a mod we don't port (spawners, gateways, infusion, Patchouli book, God-Fused
+  Pearl, Raven Enchanting Table, PneumaticCraft armor).
+- All 7 block loot tables (tables and gem cases dropped nothing when broken).
+- `AffixItemIngredient` (`apotheosis:affix`, by rarity) and `GemIngredient`
+  (`apotheosis:gem`, by purity) as Fabric `CustomIngredient`s, registered in
+  `onInitialize`. JSON converted from `"neoforge:ingredient_type"` to
+  `"fabric:type"`. `GemIngredient` reads only `purity`; upstream's optional `gems`
+  filter is unused by every generated recipe.
+- `mixin.AnvilGemSmashingMixin`: a landing anvil turns dropped gems into Gem Dust
+  (upstream's NeoForge `AnvilLandEvent` handler). Without it Gem Dust had no source,
+  and both the Salvaging and Gem Cutting Tables need it.
+
+Boot-tested clean on the local server (no new errors). In-game verification
+pending. Still out of scope and unchanged: the 24 affixes and several gems that need
+`apothic_attributes`, and gem bonus types not yet ported (`all_stats`,
+`bloody_arrow`, `drop_transform`, `leech_block`, `mageslayer`, `omnetic`,
+`radial`), which is why only 4 of upstream's 21 gems ship.

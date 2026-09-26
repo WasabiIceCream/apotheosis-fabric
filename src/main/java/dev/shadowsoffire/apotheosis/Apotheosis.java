@@ -37,6 +37,9 @@ public class Apotheosis implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> currentServer = server);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> currentServer = null);
         Apoth.bootstrap();
+        // Custom recipe ingredients for the salvaging recipes (upstream: NeoForge ingredient types).
+        net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer.register(dev.shadowsoffire.apotheosis.util.AffixItemIngredient.SERIALIZER);
+        net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer.register(dev.shadowsoffire.apotheosis.util.GemIngredient.SERIALIZER);
         dev.shadowsoffire.apotheosis.loot.LootRule.initCodecs();
         // Port note: found by actually launching a dev server — this call was missing entirely,
         // so GemBonus.CODEC's CodecMap was empty and every gem's "bonuses" list failed to decode
