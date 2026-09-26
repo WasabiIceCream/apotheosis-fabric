@@ -303,7 +303,13 @@ public class WorldTierSelectScreen extends Screen {
 
         list.add(Apotheosis.lang("button", "tier_advancement", advName).withStyle(ChatFormatting.RED));
         list.add(net.minecraft.network.chat.CommonComponents.SPACE);
-        for (String criterion : advancement.value().criteria().keySet()) {
+        // The client never receives an advancement's criteria (advancement.value().criteria() is
+        // empty here), only the player's progress, so the names come from the progress object.
+        List<String> criteria = new java.util.ArrayList<>();
+        progress.getCompletedCriteria().forEach(criteria::add);
+        progress.getRemainingCriteria().forEach(criteria::add);
+        java.util.Collections.sort(criteria);
+        for (String criterion : criteria) {
             var critProg = progress.getCriterion(criterion);
             boolean done = critProg != null && critProg.isDone();
             Component desc = Apotheosis.lang("advancements", "progression." + tier.getSerializedName() + ".criteria." + criterion)
