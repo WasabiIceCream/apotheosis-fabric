@@ -3,10 +3,10 @@
 	"render_type": "cutout",
     "textures": {
         "particle": "minecraft:block/polished_blackstone",
-        "bottom": "apotheosis:blocks/augmenting/bottom",
-        "top": "apotheosis:blocks/augmenting/top",
-        "top_lit": "apotheosis:blocks/augmenting/top_lit",
-        "side": "apotheosis:blocks/augmenting/side"
+        "bottom": "apotheosis:block/augmenting/bottom",
+        "top": "apotheosis:block/augmenting/top",
+        "top_lit": "apotheosis:block/augmenting/top_lit",
+        "side": "apotheosis:block/augmenting/side"
     },
     "elements": [
         {

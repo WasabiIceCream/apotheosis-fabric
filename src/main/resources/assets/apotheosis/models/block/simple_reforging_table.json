@@ -4,9 +4,9 @@
     "textures": {
         "particle": "minecraft:block/smooth_stone",
         "bottom": "minecraft:block/smooth_stone",
-        "top": "apotheosis:blocks/reforging/simple_table_top",
-        "side": "apotheosis:blocks/reforging/simple_table_side",
-        "lit": "apotheosis:blocks/reforging/simple_table_lit"
+        "top": "apotheosis:block/reforging/simple_table_top",
+        "side": "apotheosis:block/reforging/simple_table_side",
+        "lit": "apotheosis:block/reforging/simple_table_lit"
     },
     "elements": [
         {   "from": [ 0, 0, 0 ],

@@ -3,7 +3,7 @@
 	"credit": "Made with Blockbench by Faellynna",
 	"texture_size": [64, 64],
 	"textures": {
-		"1": "apotheosis:blocks/gem_cutting_table",
+		"1": "apotheosis:block/gem_cutting_table",
 		"particle": "block/spruce_planks"
 	},
 	"render_type": "cutout",
