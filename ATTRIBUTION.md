@@ -21,10 +21,10 @@ Every file below was fetched from `f12308b` (raw.githubusercontent.com),
 i.e. the last commit before the split, and is MIT under upstream's license
 as it stood at that time:
 
-- `textures/blocks/gem_cutting_table.png`
-- `textures/blocks/reforging/{table_top,table_side,table_lit,simple_table_top,simple_table_side,simple_table_lit}.png`
-- `textures/blocks/augmenting/{top,side,bottom,top_lit}.png`
-- `textures/blocks/salvaging_table_{top,bottom,front,side}.png`
+- `textures/block/gem_cutting_table.png`
+- `textures/block/reforging/{table_top,table_side,table_lit,simple_table_top,simple_table_side,simple_table_lit}.png`
+- `textures/block/augmenting/{top,side,bottom,top_lit}.png`
+- `textures/block/salvaging_table_{top,bottom,front,side}.png`
 - `textures/gui/{gem_cutting,reforge,reforge_animation,salvage,augmenting}.png`
 - `textures/gui/sprites/widget/{button,button_disabled,button_highlighted}.png(+.mcmeta)`
 - `textures/item/gem_dust.png(+.mcmeta)`, `gem_fused_slate.png`, `potion_charm.png`,
@@ -57,7 +57,7 @@ upstream *after* March 2025, so no MIT-era version of them exists:
 
 Still used for the files the pre-split source doesn't cover:
 
-- `textures/blocks/{basic_gem_case,ender_gem_case}.png`
+- `textures/block/{basic_gem_case,ender_gem_case}.png`
 - `textures/item/{gem_case_icon,ender_gem_case_icon}.png`
 - `textures/item/sigils/{malice,supremacy}.png`
 
