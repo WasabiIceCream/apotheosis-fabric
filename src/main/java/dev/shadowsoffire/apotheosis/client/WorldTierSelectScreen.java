@@ -1,5 +1,7 @@
 package dev.shadowsoffire.apotheosis.client;
 
+import net.minecraft.network.chat.MutableComponent;
+import java.util.List;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.UnaryOperator;
@@ -271,10 +273,44 @@ public class WorldTierSelectScreen extends Screen {
                 .texture(Apotheosis.loc("textures/gui/buttons/" + tier.getSerializedName() + ".png"))
                 .texSize(30, 90)
                 .action(this.displayTier(tier))
-                .message(Apotheosis.lang("button", tier.getSerializedName())))
+                .message(Apotheosis.lang("button", tier.getSerializedName()))
+                .inactiveMessage(tierLocked(tier)))
             .build();
         this.tierButtons.put(tier, button);
         this.addRenderableWidget(button);
+    }
+
+    /**
+     * Tooltip for a locked tier: its unlock advancement and a checklist of that advancement's
+     * criteria. Port note (bugfix, 2026-09-25): this was dropped in the initial port, so locked
+     * tiers showed only "(Locked)" with no way to see what unlocks them. Progress is read through
+     * {@link dev.shadowsoffire.apotheosis.mixin.ClientAdvancementsAccessor}, since
+     * {@code ClientAdvancements.progress} is private here.
+     */
+    private static List<Component> tierLocked(WorldTier tier) {
+        var connection = Minecraft.getInstance().getConnection();
+        List<Component> list = new java.util.ArrayList<>();
+        MutableComponent advName = Apotheosis.lang("advancements", "progression." + tier.getSerializedName() + ".title").withStyle(ChatFormatting.GOLD);
+        var advancements = connection == null ? null : connection.getAdvancements();
+        var advancement = advancements == null ? null : advancements.get(Apotheosis.loc("progression/" + tier.getSerializedName()));
+        var progress = advancement == null ? null
+            : ((dev.shadowsoffire.apotheosis.mixin.ClientAdvancementsAccessor) advancements).apoth$getProgress().get(advancement);
+
+        if (progress == null) {
+            list.add(Apotheosis.lang("button", "tier_advancement", advName.withStyle(ChatFormatting.OBFUSCATED)).withStyle(ChatFormatting.RED));
+            return list;
+        }
+
+        list.add(Apotheosis.lang("button", "tier_advancement", advName).withStyle(ChatFormatting.RED));
+        list.add(net.minecraft.network.chat.CommonComponents.SPACE);
+        for (String criterion : advancement.value().criteria().keySet()) {
+            var critProg = progress.getCriterion(criterion);
+            boolean done = critProg != null && critProg.isDone();
+            Component desc = Apotheosis.lang("advancements", "progression." + tier.getSerializedName() + ".criteria." + criterion)
+                .withStyle(done ? ChatFormatting.GREEN : ChatFormatting.GRAY);
+            list.add(Apotheosis.lang("info", done ? "criteria_done" : "criteria_unfinished", desc));
+        }
+        return list;
     }
 
     private static record AnimationData(int x, int y, int width, int height, int frames, Identifier texture) {
