@@ -55,7 +55,15 @@ public final class StackAttributeModifiersEvent {
      * are always shown with the default display (no per-affix custom tooltip layout).
      */
     public static StackAttributeModifiersEvent forGroup(EquipmentSlotGroup queried, TriConsumer<Holder<Attribute>, AttributeModifier, ItemAttributeModifiers.Display> sink) {
-        return new StackAttributeModifiersEvent(group -> group == queried, (attr, mod) -> sink.accept(attr, mod, ItemAttributeModifiers.Display.attributeModifiers()));
+        return forGroup(queried, sink, ItemAttributeModifiers.Display.attributeModifiers());
+    }
+
+    /**
+     * As {@link #forGroup(EquipmentSlotGroup, TriConsumer)}, with the given display for every modifier added (gem modifiers use
+     * {@code hidden()}: their bonus already shows on the item's socket line).
+     */
+    public static StackAttributeModifiersEvent forGroup(EquipmentSlotGroup queried, TriConsumer<Holder<Attribute>, AttributeModifier, ItemAttributeModifiers.Display> sink, ItemAttributeModifiers.Display display) {
+        return new StackAttributeModifiersEvent(group -> group == queried, (attr, mod) -> sink.accept(attr, mod, display));
     }
 
     /**

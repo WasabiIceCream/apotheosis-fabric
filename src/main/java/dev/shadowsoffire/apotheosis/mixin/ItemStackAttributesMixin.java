@@ -42,7 +42,8 @@ public abstract class ItemStackAttributesMixin {
         ItemStack self = (ItemStack) (Object) this;
         StackAttributeModifiersEvent event = StackAttributeModifiersEvent.forGroup(group, sink);
         AffixHelper.streamAffixes(self).forEach(inst -> inst.addModifiers(event));
-        SocketHelper.getGems(self).addModifiers(event);
+        // This overload feeds the tooltip; gem bonuses already show on the socket lines, so list them hidden (they still apply).
+        SocketHelper.getGems(self).addModifiers(StackAttributeModifiersEvent.forGroup(group, sink, net.minecraft.world.item.component.ItemAttributeModifiers.Display.hidden()));
     }
 
 }
