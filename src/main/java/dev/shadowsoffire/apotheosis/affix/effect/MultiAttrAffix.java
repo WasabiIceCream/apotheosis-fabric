@@ -96,8 +96,8 @@ public class MultiAttrAffix extends Affix implements AttributeProvidingAffix {
             StepFunction valueFactory = modif.values.get(inst.getRarity());
 
             if (valueFactory.get(0) != valueFactory.get(1)) {
-                Component minComp = AttributeFormatUtil.toValueComponent(modif.op, valueFactory.get(0));
-                Component maxComp = AttributeFormatUtil.toValueComponent(modif.op, valueFactory.get(1));
+                Component minComp = AttributeFormatUtil.toValueComponent(modif.attr(), modif.op, valueFactory.get(0));
+                Component maxComp = AttributeFormatUtil.toValueComponent(modif.attr(), modif.op, valueFactory.get(1));
                 comp.append(valueBounds(minComp, maxComp));
             }
 

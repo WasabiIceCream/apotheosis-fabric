@@ -74,7 +74,7 @@ public class AttributeAffix extends Affix implements AttributeProvidingAffix {
         Attribute attr = this.attribute.value();
 
         MutableComponent comp;
-        MutableComponent valueComp = AttributeFormatUtil.toValueComponent(this.operation, value);
+        MutableComponent valueComp = AttributeFormatUtil.toValueComponent(this.attribute, this.operation, value);
         ChatFormatting color = attr.getStyle(value > 0);
 
         if (value > 0.0D) {
@@ -85,8 +85,8 @@ public class AttributeAffix extends Affix implements AttributeProvidingAffix {
         }
 
         if (modif.valueFactory.get(0) != modif.valueFactory.get(1)) {
-            Component minComp = AttributeFormatUtil.toValueComponent(this.operation, modif.valueFactory.get(0));
-            Component maxComp = AttributeFormatUtil.toValueComponent(this.operation, modif.valueFactory.get(1));
+            Component minComp = AttributeFormatUtil.toValueComponent(this.attribute, this.operation, modif.valueFactory.get(0));
+            Component maxComp = AttributeFormatUtil.toValueComponent(this.attribute, this.operation, modif.valueFactory.get(1));
             comp.append(valueBounds(minComp, maxComp));
         }
 

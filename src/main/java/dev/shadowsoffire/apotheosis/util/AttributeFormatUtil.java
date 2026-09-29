@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import dev.shadowsoffire.apothic_attributes.api.PercentageAttribute;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -59,6 +60,13 @@ public final class AttributeFormatUtil {
      * Formats just the numeric value of a modifier (e.g. for min/max bound display), matching
      * vanilla's sign + percent-for-multiplicative-operations convention.
      */
+    public static MutableComponent toValueComponent(Holder<Attribute> attribute, Operation op, double value) {
+        if (op == Operation.ADD_VALUE && attribute.value() instanceof PercentageAttribute) {
+            op = Operation.ADD_MULTIPLIED_BASE; // Percent-style, as Apothic Attributes shows these (see PercentageAttribute#forDisplay).
+        }
+        return toValueComponent(op, value);
+    }
+
     public static MutableComponent toValueComponent(Operation op, double value) {
         String formatted = FORMAT.format(op == Operation.ADD_VALUE ? value : value * 100);
         String sign = value >= 0 ? "+" : "";
