@@ -74,6 +74,14 @@ public final class AdventureTooltips {
             int sockets = SocketHelper.getSockets(stack);
             if (sockets > 0) {
                 lines.add(Component.translatable("misc.apotheosis.sockets", sockets).withStyle(ChatFormatting.YELLOW));
+                // One line per socket, as upstream's SocketTooltipRenderer shows (text only: that renderer also draws a socket
+                // icon and a small gem icon per line, which needs a tooltip component this port doesn't register yet).
+                var gems = SocketHelper.getGems(stack);
+                for (int i = 0; i < gems.size(); i++) {
+                    var inst = gems.get(i);
+                    Component desc = inst.isValid() ? inst.getSocketBonusTooltip(ctx) : Component.translatable("socket.apotheosis.empty");
+                    lines.add(Component.literal(inst.isValid() ? " \u25C6 " : " \u25C7 ").append(desc).withColor(0xAABBCC));
+                }
             }
 
             if (!lines.isEmpty()) {
