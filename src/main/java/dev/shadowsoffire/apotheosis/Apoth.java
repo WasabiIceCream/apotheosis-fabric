@@ -56,6 +56,11 @@ public class Apoth {
 
         public static final com.mojang.serialization.MapCodec<dev.shadowsoffire.apotheosis.advancements.predicates.MonsterPredicate> IS_MONSTER = R.custom("is_monster", net.minecraft.core.registries.BuiltInRegistries.ENTITY_SUB_PREDICATE_TYPE, dev.shadowsoffire.apotheosis.advancements.predicates.MonsterPredicate.CODEC);
 
+        // Upstream registers these under the same ids; without them datapacks can't use the entries.
+        public static final com.mojang.serialization.MapCodec<dev.shadowsoffire.apotheosis.loot.entry.AffixLootPoolEntry> RANDOM_AFFIX_ITEM = R.custom("random_affix_item", net.minecraft.core.registries.BuiltInRegistries.LOOT_POOL_ENTRY_TYPE, dev.shadowsoffire.apotheosis.loot.entry.AffixLootPoolEntry.CODEC);
+
+        public static final com.mojang.serialization.MapCodec<dev.shadowsoffire.apotheosis.loot.entry.GemLootPoolEntry> RANDOM_GEM = R.custom("random_gem", net.minecraft.core.registries.BuiltInRegistries.LOOT_POOL_ENTRY_TYPE, dev.shadowsoffire.apotheosis.loot.entry.GemLootPoolEntry.CODEC);
+
         private static void bootstrap() {}
     }
 
