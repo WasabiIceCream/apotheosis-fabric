@@ -147,10 +147,12 @@ public class LootController {
         }
         else {
             Set<AffixLootEntry> resolved = entries.stream().filter(DynamicHolder::isBound).map(DynamicHolder::get).collect(Collectors.toSet());
-            AffixLootEntry entry = AffixLootRegistry.INSTANCE.getRandomItem(gCtx, resolved::contains);
-            if (entry == null) {
+            if (resolved.isEmpty()) {
                 return ItemStack.EMPTY;
             }
+            // Gameoverse: the Set overload falls back to a uniform pick when every entry weighs zero at
+            // the player's tier (as the rarity pick above does), instead of dropping nothing.
+            AffixLootEntry entry = AffixLootRegistry.INSTANCE.getRandomItem(gCtx, resolved);
 
             LootRarity rarity;
 
