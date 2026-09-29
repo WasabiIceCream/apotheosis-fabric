@@ -80,14 +80,12 @@ public class ApothMiscUtil {
     }
 
     /**
-     * Port of Apothic-Attributes' {@code ApothicAttributes.getLocalAtkStrength(LivingEntity)} —
-     * out of scope as a dependency, but used by a couple of affix effects to check "was this a
-     * fully-wound-up attack" before triggering a bonus effect. Vanilla only tracks the
-     * cooldown-based attack-strength scale for {@link Player}s (mobs always attack at full
-     * strength, having no such cooldown), so this returns 1.0 for any other {@link LivingEntity}.
+     * The attack strength of the attack being dealt, for affix effects that only trigger on a fully-wound-up attack.
+     * Delegates to Apothic Attributes, which records it when the attack starts: reading the player's attack strength
+     * here would always see ~0, since vanilla resets it before dealing the damage. Always 1 for non-players.
      */
     public static float getLocalAtkStrength(LivingEntity entity) {
-        return entity instanceof Player p ? p.getAttackStrengthScale(0.5F) : 1.0F;
+        return dev.shadowsoffire.apothic_attributes.ApothicAttributes.getLocalAtkStrength(entity);
     }
 
     @Nullable
