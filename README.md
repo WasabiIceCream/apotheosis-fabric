@@ -21,8 +21,11 @@ spawners, and bosses are out of scope.
   upgrade affixed gear
 - Loot tables updated so this content actually drops in the world
 
-Depends on [Placebo](https://github.com/WasabiIceCream/placebo-fabric), a
-Fabric port of Apotheosis's own base library.
+Depends on [Placebo](https://github.com/WasabiIceCream/placebo-fabric) (0.1.1+), a
+Fabric port of Apotheosis's own base library, and, since 0.3.0,
+[Apothic Attributes](https://github.com/WasabiIceCream/Apothic-Attributes) (Fabric port), the
+attribute library upstream Apotheosis requires. Both are composite builds: clone them next to this
+repository (`../placebo-fabric`, `../apothic-attributes-fabric`) to build.
 
 ## License and assets
 
