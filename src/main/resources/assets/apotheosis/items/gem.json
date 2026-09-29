@@ -1,6 +1,138 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "apotheosis:item/gem"
+    "type": "minecraft:select",
+    "property": "apotheosis:gem",
+    "cases": [
+      {
+        "when": "apotheosis:core/ballast",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/core/ballast"
+        }
+      },
+      {
+        "when": "apotheosis:core/brawlers",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/core/brawlers"
+        }
+      },
+      {
+        "when": "apotheosis:core/breach",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/core/breach"
+        }
+      },
+      {
+        "when": "apotheosis:core/combatant",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/core/combatant"
+        }
+      },
+      {
+        "when": "apotheosis:core/guardian",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/core/guardian"
+        }
+      },
+      {
+        "when": "apotheosis:core/lightning",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/core/lightning"
+        }
+      },
+      {
+        "when": "apotheosis:core/lunar",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/core/lunar"
+        }
+      },
+      {
+        "when": "apotheosis:core/samurai",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/core/samurai"
+        }
+      },
+      {
+        "when": "apotheosis:core/slipstream",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/core/slipstream"
+        }
+      },
+      {
+        "when": "apotheosis:core/solar",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/core/solar"
+        }
+      },
+      {
+        "when": "apotheosis:core/splendor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/core/splendor"
+        }
+      },
+      {
+        "when": "apotheosis:core/tyrannical",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/core/tyrannical"
+        }
+      },
+      {
+        "when": "apotheosis:core/warlord",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/core/warlord"
+        }
+      },
+      {
+        "when": "apotheosis:overworld/earth",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/overworld/earth"
+        }
+      },
+      {
+        "when": "apotheosis:overworld/royalty",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/overworld/royalty"
+        }
+      },
+      {
+        "when": "apotheosis:the_end/endersurge",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/the_end/endersurge"
+        }
+      },
+      {
+        "when": "apotheosis:the_end/mageslayer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/the_end/mageslayer"
+        }
+      },
+      {
+        "when": "apotheosis:the_nether/blood_lord",
+        "model": {
+          "type": "minecraft:model",
+          "model": "apotheosis:item/gems/the_nether/blood_lord"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "apotheosis:item/gem"
+    }
   }
 }

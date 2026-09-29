@@ -12,3 +12,4 @@ accessible field net/minecraft/world/entity/projectile/arrow/AbstractArrow baseD
 # AbstractContainerScreen#getHoveredSlot(double, double) is private in this version,
 # and the protected `hoveredSlot` field is only accessible in-hierarchy — widen it directly.
 accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen hoveredSlot Lnet/minecraft/world/inventory/Slot;
+accessible field net/minecraft/client/renderer/item/properties/select/SelectItemModelProperties ID_MAPPER Lnet/minecraft/util/ExtraCodecs$LateBoundIdMapper;

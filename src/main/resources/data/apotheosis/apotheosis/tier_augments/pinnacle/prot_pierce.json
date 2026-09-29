@@ -1,7 +1,7 @@
 {
     "type": "apotheosis:attribute",
     "modifier": {
-        "attribute": "apotheosis:prot_pierce",
+        "attribute": "apothic_attributes:prot_pierce",
         "modifier_id": "apotheosis:pinnacle/prot_pierce",
         "operation": "add_value",
         "value": 20.0

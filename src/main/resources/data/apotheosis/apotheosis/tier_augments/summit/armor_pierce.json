@@ -1,7 +1,7 @@
 {
     "type": "apotheosis:attribute",
     "modifier": {
-        "attribute": "apotheosis:armor_pierce",
+        "attribute": "apothic_attributes:armor_pierce",
         "modifier_id": "apotheosis:summit/armor_pierce",
         "operation": "add_value",
         "value": 15.0

@@ -28,7 +28,10 @@ as it stood at that time:
 - `textures/gui/{gem_cutting,reforge,reforge_animation,salvage,augmenting}.png`
 - `textures/gui/sprites/widget/{button,button_disabled,button_highlighted}.png(+.mcmeta)`
 - `textures/item/gem_dust.png(+.mcmeta)`, `gem_fused_slate.png`, `potion_charm.png`,
-  `gems/default.png`
+  `gems/default.png`, and 18 per-gem icons `gems/{ballast,blood_lord,brawlers,breach,combatant,earth,
+  endersurge,guardian,lightning,lunar,mageslayer,royalty,samurai,slipstream,solar,splendor,tyrannical,
+  warlord}.png` (+ their `.mcmeta` animations), from upstream's `textures/items/gems/` (added 0.3.0;
+  Verdant Ruin and Molten Breach postdate the split and use the default icon)
 - `textures/item/{mysterious_scrap_metal,timeworn_fabric,luminous_crystal_shard,arcane_sands,godforged_pearl}.png`
  , renamed from upstream's `{common,uncommon,rare,epic,mythic}_material.png`
   to match this port's item IDs; `godforged_pearl.png` also carries

@@ -55,22 +55,5 @@ public class EnchantmentHelperMixin {
         }
     }
 
-    /**
-     * Implements {@link Apoth.CustomAttributes#PROT_PIERCE} — reduces the defender's aggregate
-     * Protection-family enchantment damage reduction by the attacker's {@code prot_pierce}
-     * attribute. {@code getDamageProtection} is the single vanilla method that sums Protection
-     * points across all worn armor into one value, mirroring how {@code getArmorValue()} is the
-     * single aggregate for armor (see {@code CombatRulesMixin}).
-     */
-    @Inject(method = "getDamageProtection", at = @At("RETURN"), cancellable = true)
-    private static void apoth$pierceProtection(ServerLevel level, LivingEntity entity, DamageSource source, CallbackInfoReturnable<Float> cir) {
-        Entity attacker = source.getEntity();
-        if (attacker instanceof LivingEntity living) {
-            float pierce = (float) living.getAttributeValue(Apoth.CustomAttributes.PROT_PIERCE);
-            if (pierce > 0) {
-                cir.setReturnValue(Math.max(0, cir.getReturnValue() - pierce));
-            }
-        }
-    }
 
 }

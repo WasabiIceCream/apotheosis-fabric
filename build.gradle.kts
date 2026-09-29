@@ -31,6 +31,9 @@ dependencies {
     // from ../placebo-fabric, see settings.gradle.kts).
     implementation("dev.shadowsoffire.placebo:placebo-fabric")
 
+    // Apothic Attributes, the attribute library upstream Apotheosis requires (our Fabric port, composite build).
+    implementation("dev.shadowsoffire.apothic_attributes:apothic-attributes-fabric")
+
     // Data attachment storage for affix/gem state on items and entities (replaces
     // NeoForge's DataAttachments system — see mod-dev/apotheosis-fabric/README.md).
     // Already installed separately on the target server as the bundled

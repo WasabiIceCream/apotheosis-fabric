@@ -11,8 +11,6 @@
     "SmithingMenuMixin",
     "LivingEntityEquipmentTriggerMixin",
     "LivingEntityAttributesMixin",
-    "CombatRulesMixin",
-    "PlayerExperienceMixin",
     "MobSpawnAugmentMixin",
     "ServerPlayerCreativeFlightMixin",
     "AnvilGemSmashingMixin"

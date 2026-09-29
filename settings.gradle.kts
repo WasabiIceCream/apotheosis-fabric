@@ -11,3 +11,6 @@ rootProject.name = "apotheosis-fabric"
 // project to match the real upstream dependency architecture — see
 // mod-dev/apotheosis-fabric/README.md.
 includeBuild("../placebo-fabric")
+
+// Apothic Attributes (our Fabric port), required by 15 gems and 24 affixes.
+includeBuild("../apothic-attributes-fabric")

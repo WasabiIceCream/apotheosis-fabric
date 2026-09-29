@@ -54,6 +54,13 @@ public class Apoth {
 
         public static final com.mojang.serialization.MapCodec<dev.shadowsoffire.apotheosis.loot.conditions.KilledByRealPlayerCondition> KILLED_BY_REAL_PLAYER = R.lootCondition("killed_by_real_player", dev.shadowsoffire.apotheosis.loot.conditions.KilledByRealPlayerCondition.CODEC);
 
+        // Upstream registers these too (Royalty's drop_transform bonus uses matches_block).
+        public static final com.mojang.serialization.MapCodec<dev.shadowsoffire.apotheosis.loot.conditions.MatchesBlockCondition> MATCHES_BLOCK = R.lootCondition("matches_block", dev.shadowsoffire.apotheosis.loot.conditions.MatchesBlockCondition.CODEC);
+
+        public static final com.mojang.serialization.MapCodec<dev.shadowsoffire.apotheosis.loot.conditions.WorldTierCondition> HAS_WORLD_TIER = R.lootCondition("has_world_tier", dev.shadowsoffire.apotheosis.loot.conditions.WorldTierCondition.CODEC);
+
+        public static final com.mojang.serialization.MapCodec<dev.shadowsoffire.apotheosis.util.LootPatternMatcher> LOOT_TABLE_PATTERN_MATCHER = R.lootCondition("loot_table_pattern_matcher", dev.shadowsoffire.apotheosis.util.LootPatternMatcher.CODEC);
+
         public static final com.mojang.serialization.MapCodec<dev.shadowsoffire.apotheosis.advancements.predicates.MonsterPredicate> IS_MONSTER = R.custom("is_monster", net.minecraft.core.registries.BuiltInRegistries.ENTITY_SUB_PREDICATE_TYPE, dev.shadowsoffire.apotheosis.advancements.predicates.MonsterPredicate.CODEC);
 
         // Upstream registers these under the same ids; without them datapacks can't use the entries.

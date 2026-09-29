@@ -21,6 +21,8 @@ public class ApotheosisClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         PayloadHelper.registerClientHandlers();
+        // Per-gem item models (assets/apotheosis/items/gem.json selects on this).
+        net.minecraft.client.renderer.item.properties.select.SelectItemModelProperties.ID_MAPPER.put(dev.shadowsoffire.apotheosis.Apotheosis.loc("gem"), GemSelectProperty.TYPE);
         // Must happen here, synchronously during client mod init — not lazily on first tick.
         // See AdventureKeys#init's javadoc for why (registering a KeyMapping after GameOptions
         // exists throws, permanently breaking the class and crash-looping the client).

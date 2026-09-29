@@ -1,7 +1,7 @@
 {
     "type": "apotheosis:attribute",
     "modifier": {
-        "attribute": "apotheosis:experience_gained",
+        "attribute": "apothic_attributes:experience_gained",
         "modifier_id": "apotheosis:pinnacle/experience",
         "operation": "add_multiplied_total",
         "value": 1.25

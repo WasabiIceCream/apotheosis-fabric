@@ -10,7 +10,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 
 /**
- * Retrofits {@link Apoth.CustomAttributes}' three custom attributes onto every {@link LivingEntity}
+ * Retrofits {@link Apoth.CustomAttributes#CREATIVE_FLIGHT} onto every {@link LivingEntity}
+ * (the other stand-ins are now Apothic Attributes' own and stay registered only so saved data still loads)
  * type (players and mobs alike), since Fabric API has no event for adding a default attribute to
  * existing entity types after the fact (NeoForge's {@code EntityAttributeModificationEvent} has
  * no Fabric equivalent). {@code Player#createAttributes} and {@code Mob#createMobAttributes} both
@@ -23,9 +24,6 @@ public class LivingEntityAttributesMixin {
     @Inject(method = "createLivingAttributes", at = @At("RETURN"))
     private static void apoth$addCustomAttributes(CallbackInfoReturnable<AttributeSupplier.Builder> cir) {
         cir.getReturnValue()
-            .add(Apoth.CustomAttributes.EXPERIENCE_GAINED)
-            .add(Apoth.CustomAttributes.ARMOR_PIERCE)
-            .add(Apoth.CustomAttributes.PROT_PIERCE)
             .add(Apoth.CustomAttributes.CREATIVE_FLIGHT);
     }
 
