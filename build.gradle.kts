@@ -43,6 +43,10 @@ dependencies {
     val cardinalComponentsVersion = "8.0.1"
     implementation("org.ladysnake.cardinal-components-api:cardinal-components-base:$cardinalComponentsVersion")
     implementation("org.ladysnake.cardinal-components-api:cardinal-components-entity:$cardinalComponentsVersion")
+
+    // Trinkets Updated (optional): Potion Charms in the Trinkets charm slot (compat.TrinketsCompat, only loaded when
+    // Trinkets is installed). 4.0.1+26.1 is the version on the Gameoverse server.
+    compileOnly("maven.modrinth:trinkets-updated:XkGsalta")
 }
 
 loom {

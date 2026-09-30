@@ -62,6 +62,14 @@ public class PotionCharmItem extends Item implements ITabFiller {
 
     @Override
     public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @org.jetbrains.annotations.Nullable EquipmentSlot slot) {
+        tickCharm(stack, level, entity, slot);
+    }
+
+    /**
+     * Upstream's {@code inventoryTick}, shared with the Trinkets charm slot ({@code compat.TrinketsCompat}, which passes no
+     * slot, as Curios does upstream). {@link AdventureConfig#charmsInCuriosOnly} keeps the charm working only there.
+     */
+    public static void tickCharm(ItemStack stack, ServerLevel level, Entity entity, @org.jetbrains.annotations.Nullable EquipmentSlot slot) {
         if (!hasEffect(stack) || AdventureConfig.charmsInCuriosOnly && slot != null) {
             return;
         }

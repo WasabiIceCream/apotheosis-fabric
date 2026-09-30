@@ -82,6 +82,7 @@
     "key.apotheosis.toggle_radial_mining": "Change Radial Mining Mode",
     "key.apotheosis.open_world_tier_select": "Open World Tier Select",
     "key.apotheosis.compare_equipment": "Compare Hovered Equipment",
+    "trinkets.slot.charm.charm": "Charm",
     "key.apotheosis.link_item_to_chat": "Link Hovered Item to Chat",
 
     "chat.apotheosis.link_item_with_count": "%s %s",

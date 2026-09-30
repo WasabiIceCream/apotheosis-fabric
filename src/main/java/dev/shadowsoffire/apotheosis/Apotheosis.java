@@ -94,6 +94,10 @@ public class Apotheosis implements ModInitializer {
         registerMobHooks();
         dev.shadowsoffire.apotheosis.gen.ApothWorldgen.init();
         registerCommands();
+        // Potion Charms in the Trinkets charm slot (optional dependency; the compat class is only loaded with Trinkets present).
+        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("trinkets")) {
+            dev.shadowsoffire.apotheosis.compat.TrinketsCompat.init();
+        }
         LOGGER.info("Apotheosis (Fabric Adventure port) initializing");
     }
 

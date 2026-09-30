@@ -45,6 +45,23 @@ public final class AdventureTooltips {
     private AdventureTooltips() {}
 
     public static void register() {
+        // Upstream renderCanSocketTooltip (ScreenEvent.Render.Post): while carrying a gem over an item it fits, say that a
+        // right click sockets it (AdventureEvents#stackedOnOther).
+        net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> {
+            if (screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?> cs) {
+                net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.afterExtract(screen).register((scn, graphics, mouseX, mouseY, delta) -> {
+                    var carried = cs.getMenu().getCarried();
+                    var slot = cs.hoveredSlot;
+                    if (slot == null || !carried.is(dev.shadowsoffire.apotheosis.Apoth.Items.GEM) || !SocketHelper.canSocketGemInItem(slot.getItem(), carried)) {
+                        return;
+                    }
+                    Component itemName = Component.translatable("%s", slot.getItem().getHoverName()).withStyle(ChatFormatting.WHITE);
+                    Component line = dev.shadowsoffire.apotheosis.Apotheosis.lang("misc", "right_click_to_socket", carried.getHoverName(), itemName).withStyle(ChatFormatting.GRAY);
+                    graphics.setTooltipForNextFrame(Minecraft.getInstance().font, line, mouseX, mouseY);
+                });
+            }
+        });
+
         ItemTooltipCallback.EVENT.register((stack, context, flag, tooltip) -> {
             // Upstream showBlacklistedPotions.
             if (stack.getItem() == net.minecraft.world.item.Items.POTION) {

@@ -45,5 +45,8 @@
   },
   "recommends": {
     "artifacts": "*"
+  },
+  "suggests": {
+    "trinkets": "*"
   }
 }
