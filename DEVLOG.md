@@ -1626,3 +1626,186 @@ holy wand, Wizard Staff and Arsenal heal staff: category `spell_weapon`, only th
 exactly one of its three), iron sword stays melee, bow stays bow. A mythic fire staff took an armor stand's Fire Spell
 Power from 7 to 8.61 (+23%) and Spell Critical Chance from 105 to 113. Not tested in game: tooltips, casting with an
 affixed staff, the effect affixes on a spell projectile, gems socketed into a staff.
+
+## 0.4.4 (2026-09-30): wiring audit of every upstream integration point
+
+We kept finding upstream hooks the port never connected (0.3.0: on-hit/when-hurt, protection, durability; 0.4.3:
+projectiles). This pass lists every integration point of upstream's 26.1 branch (clone at `ae0ef78`, 2026-09-06, the
+commit the port follows) that touches shipped content, with the port's wiring. Out of scope and not listed: Apothic
+Enchanting, Gateways, Apothic Spawners and the other compat packages, datagen, and the tower structures.
+
+A point counts as wired only if something reaches it at runtime (a mixin, Fabric API event or callback).
+**Fixed** = connected in 0.4.4. New code: `AdventureEvents` (the port's counterpart of upstream's class of the same name,
+static handlers), `mixin/LivingEntityAdventureMixin`, `EntityAdventureMixin`, `PlayerOmneticMixin`, `BlockTelepathicMixin`,
+`AbstractSkeletonMixin`, `BossFinalizeSpawnMixin`, `WitherSkullBlockMixin`, additions to `ItemStackMixin` and
+`ServerLevelProjectileMixin`, `net/RadialStatePayload`, `compat/TrinketsCompat`.
+
+### Upstream `AdventureEvents` (30 handlers)
+
+| Upstream handler (event, priority) | Port | Status |
+|---|---|---|
+| `cmds` (ApotheosisCommandEvent) | `Apotheosis#registerCommands` (CommandRegistrationCallback) | wired |
+| `affixModifiers` (StackAttributeModifiersEvent) | `ItemStackAttributesMixin` (both `ItemStack.forEachModifier` overloads) | wired |
+| `preventBossSuffocate` (EntityInvulnerabilityCheckEvent) | `ApothMobEvents#allowDamage` (ServerLivingEntityEvents.ALLOW_DAMAGE) | wired |
+| `fireProjectile` (EntityJoinLevelEvent, HIGH) | `ServerLevelProjectileMixin` -> `ProjectileHooks` | wired (0.4.3) |
+| `impact` (ProjectileImpactEvent) | `ProjectileImpactMixin` (`Projectile.onHit`) | wired (0.4.3) |
+| `modifyIncomingDamageTags` (Magical) | `DamageSourceMagicalMixin` | wired (0.4.3) |
+| `onDamage`: gem/affix `onHurt` (LivingIncomingDamageEvent, LOW) | `LivingEntityAdventureMixin#apoth_onHurt` | **fixed** |
+| `shieldBlock`: gem/affix `onShieldBlock` (LivingShieldBlockEvent) | `LivingEntityAdventureMixin#apoth_onShieldBlock` | **fixed** |
+| `blockBreak`: gem/affix `onBlockBreak` (BreakBlockEvent) | `AdventureEvents#blockBreak` (PlayerBlockBreakEvents.AFTER) | **fixed** |
+| `drops`: affix `modifyEntityLoot` (LivingDropsEvent, LOW) | `LivingEntityAdventureMixin` drop collection -> `AdventureEvents#onEntityDrops` | **fixed** |
+| `deathMark`: Festive marks equipment (LivingDeathEvent, LOW) | replaced: drops from outside the loot table count as marked (`LivingDrops`) | **fixed** |
+| `dropsLowest` (LivingDropsEvent): Telepathic | `TelepathicAffix#drops(LivingDrops)` via `onEntityDrops` | **fixed** |
+| `dropsLowest` (BlockDropsEvent): Telepathic | `BlockTelepathicMixin` (`Block.dropResources` with breaker) | **fixed** |
+| `festive_removeMarker` | not needed (no per-stack marker) | n/a |
+| `harvest` (HarvestCheck): Omnetic affix/gem | `PlayerOmneticMixin` (`Player.hasCorrectToolForDrops`) | **fixed** |
+| `speed` (BreakSpeed, HIGHEST): Omnetic affix/gem | `PlayerOmneticMixin` (`Player.getDestroySpeed`) | **fixed** |
+| `onBreak` (BreakBlockEvent, LOW): Radial affix/gem | `Apotheosis#registerRadialMiningHook` (PlayerBlockBreakEvents.AFTER, after `blockBreak`) | wired |
+| `gemSmashing` (AnvilLandEvent) | `AnvilGemSmashingMixin` | wired |
+| `enchLevels` (GetEnchantmentLevelEvent, HIGH) | `EnchantmentHelperMixin#getItemEnchantmentLevel` -> `applyBonus` | wired (no reentrancy lock; no loop seen) |
+| `update`: `apoth.burns_in_sun` (EntityTickEvent.Post) | `MobBossMixin#aiStep` (mobs only; upstream any entity, only mobs get the tag) | wired |
+| `despawn`: golem bosses (MobDespawnEvent) | `MobBossMixin#checkDespawn` | wired |
+| `clone`: reforge seed (PlayerEvent.Clone) | `AdventureEvents` (ServerPlayerEvents.COPY_FROM) | **fixed** (dying rerolled the reforging table's choices) |
+| `equip`: equipped_item trigger | `LivingEntityEquipmentTriggerMixin` | wired |
+| `sendWorldTierDataOnJoin` | `WorldTierComponent` (Cardinal Components auto-sync) | wired |
+| `applyMissedTierAugments`, mobs | `ApothMobEvents#onEntityLoad` (ENTITY_LOAD) | wired |
+| `applyMissedTierAugments`, players | `AdventureEvents#applyMissedTierAugments` (JOIN, AFTER_RESPAWN) | **fixed** (tier luck/experience were lost on death until the tier changed) |
+| `sync` (OnDatapackSyncEvent): recipes | Fabric `RecipeSynchronization` + `ClientRecipeSynchronizedEvent` | wired |
+| `sync`: `ConfigPayload` | none: `AdventureConfig` is hard-coded defaults on both sides | n/a |
+| `recordColdDamage` (LivingDamageEvent.Post) | none: only feeds `FrozenDropsBonus` (Twilight Forest gem, not shipped) | skipped |
+| `stackedOnOther`: right-click socketing (ItemStackedOnOtherEvent) | `ItemStackMixin` (`ItemStack.overrideOtherStackedOnMe`) -> `AdventureEvents#stackedOnOther` | **fixed** |
+| `removeCloudsOnDeath` | `ApothMobEvents#afterDeath` | wired |
+| `syncRadialState` | `RadialMiningComponent` (auto-sync) | wired |
+
+### Other upstream listeners
+
+| Upstream | Port | Status |
+|---|---|---|
+| `ApothMobEvents#finalizeMobSpawns` (FinalizeSpawnEvent) | `MobFinalizeSpawnMixin`, `NaturalSpawnerInvaderMixin` | wired (0.4.0) |
+| `ApothMobEvents#delayedEliteMobs` (EntityJoinLevelEvent) | ENTITY_LOAD + END_SERVER_TICK | wired (0.4.0) |
+| `Apotheosis#setup`, payload and registry registration | `Apotheosis#onInitialize` | wired |
+| `Apotheosis#caps`: automation handlers for the salvaging/reforging/augmenting tables and gem cases | none | skipped: hoppers/pipes can't use the tables or gem cases. Placebo-fabric's `InternalItemHandler` (their backing store) doesn't roll back aborted transactions, so exposing it to the Transfer API would duplicate or delete items; needs a transactional wrapper first |
+| Config file and reloader | none (hard-coded defaults, see `AdventureConfig`) | n/a |
+
+### Upstream mixins (`apotheosis.mixins.json`)
+
+| Mixin | Port | Status |
+|---|---|---|
+| `AbstractSkeletonMixin`: skeletons use crossbows | `AbstractSkeletonMixin` | **fixed** (skeleton invaders with a ranged gear set could get a crossbow and melee with it) |
+| `AnyHolderSetMixin` | `GemClass` handles `neoforge:any` | n/a |
+| `BaseSpawnerAccessor`, `EntityInvoker`, `LivingEntityInvoker`, `SmithingMenuMixin` | same names | wired |
+| `DamageSourceMixin` (extra damage tags) | `DamageSourceMagicalMixin` (Magical) and static damage type tags (Thunderstruck, `data/minecraft/tags/damage_type`) | wired |
+| `EnchantmentHelperMixin` (protection, damage bonus, post attack/hurt, durability) | `EnchantmentHelperMixin` | wired (0.3.0) |
+| `EnderDragonFightMixin`, `WitherSkullBlockMixin`: finalize spawn | `BossFinalizeSpawnMixin`, `WitherSkullBlockMixin` | **fixed** (only Apotheosis's own finalize-spawn handling, not vanilla `Mob#finalizeSpawn`) |
+| `EntityMixin`: glow colour from the name colour | `EntityAdventureMixin#getTeamColor` | **fixed** (invaders glow in their rarity colour) |
+| `GLMProviderMixin` | datagen only | n/a |
+| `GoldToolsHaveFortuneModuleMixin` | Quark, not on this server | n/a |
+| `ItemStackMixin`: affix name | `ItemStackMixin#getHoverName` | wired |
+| `ItemStackMixin`: rarity colour on the name | `ItemStackMixin#getHoverName` | **fixed** (renamed/unnamed items with a rarity kept a white name) |
+| `ItemStackMixin`: `useOn` (onItemUse) | `ItemStackMixin#useOn` | wired (0.3.0) |
+| `ItemStackMixin`: festive marker | `LivingDrops` | n/a |
+| `ItemStackMixin`: malice marker in `inventoryTick` | `MaliceRecipe#onCraft` via `SmithingMenuMixin` (applies on take) | wired differently |
+| `LivingEntityMixin`: mobs keep health percentage when gear changes max health | `LivingEntityAdventureMixin` (only when max health changed) | **fixed** |
+| `MHFMixinLivingEntity` (MC-17876) | MaxHealthFix mod on the server does the same | skipped |
+| `MobMixin`: bonus loot tables | `MobBossMixin#dropFromLootTable` | wired |
+| `WandererSpawnerMixin` | wandering trader affix trades aren't shipped (and the server disables trader spawns) | skipped |
+
+### Affix and gem bonus hooks (`Affix`, `GemBonus`, through `AffixInstance`/`SocketedGems`)
+
+| Hook | Called from | Status |
+|---|---|---|
+| `addModifiers` | `ItemStackAttributesMixin` | wired |
+| `getDamageProtection`, `getDamageBonus`, `doPostAttack`, `doPostHurt`, `getDurabilityBonusPercentage` | `EnchantmentHelperMixin` | wired (0.3.0) |
+| `onProjectileFired`, `onProjectileImpact` | `ProjectileHooks` | wired (0.4.3) |
+| `onItemUse` | `ItemStackMixin#useOn` | wired (0.3.0) |
+| `getEnchantmentLevels` (affix and gem) | `EnchantmentAffix`/`EnchantmentBonus#applyBonus` | wired |
+| `modifyLoot` (Stoneforming, Drop Transform gems) | `AffixHookLootModifier` (`affix_hook` loot modifier) | wired |
+| `onHurt` (damage reduction affixes: Blast-Forged, Runed, ...; Damage Reduction and Mageslayer gems) | `AdventureEvents#onHurt` | **fixed** |
+| `onShieldBlock` (Catalyzing, Psychic, Retreating, shield mob effect affixes, Leech Block and mob effect gems) | `AdventureEvents#onShieldBlock` | **fixed** |
+| `onBlockBreak` (breaker mob effect affixes: Spelunker's, Swift, ...; mob effect gems) | `AdventureEvents#blockBreak` | **fixed** |
+| `enablesTelepathy` (Telepathic) | `TelepathicAffix#drops`, `#blockDropTarget` | **fixed** |
+| `modifyEntityLoot` (Festive) | `AdventureEvents#onEntityDrops` | **fixed** (hook restored on `Affix`) |
+| `skipModifierIds` | gems: modifiers built with `Display.hidden()`; affixes: only during the World Tier tutorial upstream | partial (see client) |
+| Omnetic (static `harvest`/`speed`) | `PlayerOmneticMixin` | **fixed** |
+| Radial (static `onBreak`) | `registerRadialMiningHook` | wired |
+
+### Client (`AdventureModuleClient`, `AdventureKeys`, client mixins)
+
+| Upstream | Port | Status |
+|---|---|---|
+| Screens, gem case renderer, per-gem models, recipe caches, REQUEST_STATS on login, boss beams | `ApotheosisClient`, `BossSpawnEffects`, `GemSelectProperty` | wired |
+| `affixTooltips`: affix lines | `AdventureTooltips` | wired |
+| `affixTooltips`: durability bonus, malice marker, Touched by Malice | `AdventureTooltips` | **fixed** |
+| `showBlacklistedPotions` | `AdventureTooltips` | **fixed** |
+| `renderCanSocketTooltip` ("Right-click to socket ...") | `AdventureTooltips` (ScreenEvents.afterExtract) | **fixed** |
+| `tooltips`/`comps`: socket row with gem icons (`SocketComponent`) | text lines, one per socket (0.3.0) | wired differently |
+| Stoneforming tooltip component | none | skipped (cosmetic) |
+| World Tier tutorial gating of affix tooltips, over-max star search | none | skipped: the attribute lines can't be hidden here, so gating only the affix lines would be inconsistent |
+| Keys: link item to chat, open World Tier select | `AdventureKeys` | wired |
+| Key: toggle radial mining (Ctrl+O) | `AdventureKeys` + `RadialStatePayload` | **fixed** (the mode was stuck on "Disabled While Sneaking") |
+| Key: compare equipment | none | skipped (cosmetic) |
+| `AffixItemEffectRenderer` (loot beams, shadows, particles on dropped rarity items), `EntityRendererMixin` | none | skipped (cosmetic; own beam/shadow renderer needed) |
+| `RadialProgressTracker`, `MultiPlayerGameModeMixin` (client-side radial break prediction and outlines) | none | skipped (the server breaks and syncs the blocks) |
+| Reforging/augmenting table renderers, ghost-item pipelines (`GuiGraphicsExtractorMixin`, `GuiItemAtlasMixin`, `ItemStackRenderStateMixin`), `AbstractSkeletonRendererMixin`, `GuiMixin` (8 s action bar) | none | skipped (cosmetic) |
+| `TierAugmentModifierSource` (Dynamic Tooltips source name) | none | skipped (cosmetic) |
+
+### Counts
+
+84 rows above (a few rows group several related points, e.g. the five `EnchantmentHelperMixin` hooks): 38 already
+wired (3 of them wired differently from upstream), 27 fixed in 0.4.4, 1 partial (`skipModifierIds`), 7 not applicable on
+Fabric or this server, 11 skipped: 7 cosmetic client features, plus table/gem case automation (Placebo transaction issue),
+cold damage tracking (unshipped gem), wandering trader trades (unshipped) and the MC-17876 fix (MaxHealthFix does it).
+
+NeoForge item extensions: `GemItem#canBeHurtBy` (falling anvils) isn't needed, anvils only damage living entities in 26.1;
+`getCreatorModId` is cosmetic; `PotionCharmItem#supportsEnchantment`/`isPrimaryItemFor` = false is the default for an
+item without an enchantable component.
+
+### Behaviour notes
+
+- **onHurt order**: injected at the same point as Apothic Attributes' incoming damage hook (`LivingEntity.hurtServer`, at
+  the `isSleeping()` call, before blocking and armor). The exported class (`-Dmixin.debug.export`) shows the order Apothic
+  (projectile damage, crits, dodge) -> Fabric ALLOW_DAMAGE -> Spell Engine evasion -> Apotheosis `onHurt`, matching
+  upstream (Apothic HIGHEST/HIGH, Apotheosis LOW). A dodged hit never reaches `onHurt`.
+- **Shield block**: the blocked amount from `BlocksAttacks.resolveBlockedDamage` goes through the gem and affix hooks
+  before the shield takes durability damage, as NeoForge's event does.
+- **Death drops**: other mods capture `spawnAtLocation` during `dropAllDeathLoot` and add the drops themselves at the end
+  (Puzzles Lib's drops event does), so a `spawnAtLocation` return hook saw nothing. Drops are collected in
+  `ServerLevel.addFreshEntity` while the entity drops its loot (`DeathDropsCollector`); loot table stacks are recorded by
+  identity in `spawnAtLocation`. Only non-player deaths.
+- **Festive** copies only loot table drops (upstream: everything not in the mob's equipment or item capability). Mob
+  equipment, inventories (modded ones too) and custom death loot are never copied, so no duplication of what a mob carried.
+  Side effect: a Wither's Nether Star (custom death loot) isn't copied; upstream would.
+- **Omnetic** runs on both sides (the client predicts break speed), as upstream.
+- **Dragon/Wither**: now go through Apotheosis's spawn finalization with reason EVENT: World Tier monster augments (for
+  the Wither, a Monster) and augmentations can apply, as upstream. Needs a player nearby, like every spawn.
+- **Right-click socketing** needs a free socket that accepts the gem (`SocketHelper.canSocketGemInItem`), same as the
+  smithing recipe; the hint tooltip shows when it applies.
+
+### Potion Charms in a Trinkets slot (Gameoverse addition)
+
+Upstream lets the charm go in a Curios `charm` slot (`compat/curios/CuriosCompat`, `player_charm.json`). Here:
+`compat/TrinketsCompat` (Trinkets Updated as an optional `compileOnly` dependency, only loaded when `trinkets` is present;
+`suggests` in `fabric.mod.json`) registers a `TrinketCallback` whose `tick` runs the inventory logic
+(`PotionCharmItem#tickCharm`, no equipment slot, like Curios upstream). The slot is `charm/charm`, the one Friends & Foes
+already defines for totems; the port ships the same slot file, adds it to players (`data/trinkets/entities/apotheosis_charm.json`)
+and tags the charm (`trinkets:charm/charm`), so it works without Friends & Foes too. One Charm slot, shared with totems.
+`charmsInCuriosOnly` stays false (the charm also works from the inventory).
+
+### Verified on the local server (no player online)
+
+- Boot clean (only the known moonlight/tapir errors), no mixin errors after the tests loaded the target classes (skeleton,
+  wither skull block, player, block, living entity). The dragon fight mixin wasn't exercised (it fails loudly if its target
+  is wrong, `defaultRequire` 1).
+- `onHurt`: two zombies in iron chestplates, one mythic Blast-Forged at level 1.0 (35%); `/damage ... 10 minecraft:explosion`
+  took 6.40 health vs 9.84 without the affix.
+- Order of the damage hooks: exported `LivingEntity.class` (see above).
+- Telepathic mob drops: a vindicator with a rare Telepathic iron axe killed a cow (`/damage ... by`); the leather and beef
+  were moved to the vindicator, recorded as loot table drops (logged during the test).
+- Mob health percentage: a zombie at 18/36 put on a chestplate with +36 max health went to 48.4/100.8 (50%, minus sunlight
+  burning).
+- Wither built by a dispenser: `APOTH_DEBUG_MOBS=on` logged "Finalizing spawn for: Wither".
+- Trinkets: the Potion Charm matches `#trinkets:charm/charm`.
+- Not testable without a player (mob AI doesn't run with nobody online, `/damage` can't give a player source): Festive,
+  shield block, block break effects, Omnetic, block Telepathic, right-click socketing, skeleton crossbows, player tier
+  augments after death, reforge seed after death, radial toggle key, tooltips, the charm in its slot. In-game steps are in
+  the handoff to the user.
