@@ -20,12 +20,16 @@ public class CategoryCheckCommand {
 
     public static void register(LiteralArgumentBuilder<CommandSourceStack> root) {
         root.then(Commands.literal("loot_category").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(c -> {
-            Player p = c.getSource().getPlayerOrException();
-            ItemStack stack = p.getMainHandItem();
+            // Port addition: works for any living entity (execute as <mob>) and reports as command feedback.
+            net.minecraft.world.entity.Entity src = c.getSource().getEntityOrException();
+            if (!(src instanceof net.minecraft.world.entity.LivingEntity le)) {
+                throw net.minecraft.commands.CommandSourceStack.ERROR_NOT_PLAYER.create();
+            }
+            ItemStack stack = le.getMainHandItem();
             LootCategory cat = LootCategory.forItem(stack);
             EquipmentSlotGroup slots = cat.isNone() ? null : cat.getSlots();
-            p.sendSystemMessage(Component.literal("Loot Category - " + (cat.isNone() ? "none" : cat.getKey())));
-            p.sendSystemMessage(Component.literal("Equipment Slot - " + (slots == null ? "null" : slots.getSerializedName())));
+            c.getSource().sendSuccess(() -> Component.literal("Loot Category - " + (cat.isNone() ? "none" : cat.getKey())), false);
+            c.getSource().sendSuccess(() -> Component.literal("Equipment Slot - " + (slots == null ? "null" : slots.getSerializedName())), false);
             return 0;
         }));
     }
