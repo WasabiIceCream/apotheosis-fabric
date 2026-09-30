@@ -29,7 +29,7 @@ public final class TrinketsCompat {
             @Override
             public void tick(ItemStack stack, TrinketSlotAccess slot, LivingEntity entity) {
                 if (entity.level() instanceof ServerLevel level) {
-                    PotionCharmItem.tickCharm(stack, level, entity, null);
+                    PotionCharmItem.tickCharm(stack, level, entity, null, true);
                 }
             }
         });

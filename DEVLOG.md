@@ -1816,3 +1816,7 @@ Upstream's `setNoCombineRepair()` (NeoForge-only) had been dropped, so any two c
 keeping the left one's potion. `CharmNoCombineAnvilMixin` (AnvilMenu.createResult) and `CharmNoCombineGrindstoneMixin`
 (GrindstoneMenu.computeResult) block charm + charm. On Gameoverse charms are also on Simple Smithing Overhaul's
 destruction allow list, so they break for good (the user's call: charms are used up, not repaired).
+Also in 0.4.5 (Gameoverse, the user's call after the in-game test): `AdventureConfig.charmsWornOnly` (true). With Trinkets
+installed a Potion Charm works only while worn in the Charm slot and is always on there: no inventory ticking, no
+right-click toggle, no glint, tooltip "Applies %s while worn in the Charm slot." Without Trinkets, upstream behaviour.
+The right-click toggle assumed no accessory slot; here it only added a way to leave a worn charm switched off.

@@ -62,18 +62,30 @@ public class PotionCharmItem extends Item implements ITabFiller {
 
     @Override
     public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @org.jetbrains.annotations.Nullable EquipmentSlot slot) {
-        tickCharm(stack, level, entity, slot);
+        if (wornOnly()) {
+            return;
+        }
+        tickCharm(stack, level, entity, slot, false);
+    }
+
+    /**
+     * Gameoverse ({@link AdventureConfig#charmsWornOnly}): with Trinkets installed, charms only work from the Charm slot,
+     * always on there.
+     */
+    public static boolean wornOnly() {
+        return AdventureConfig.charmsWornOnly && net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("trinkets");
     }
 
     /**
      * Upstream's {@code inventoryTick}, shared with the Trinkets charm slot ({@code compat.TrinketsCompat}, which passes no
      * slot, as Curios does upstream). {@link AdventureConfig#charmsInCuriosOnly} keeps the charm working only there.
      */
-    public static void tickCharm(ItemStack stack, ServerLevel level, Entity entity, @org.jetbrains.annotations.Nullable EquipmentSlot slot) {
+    public static void tickCharm(ItemStack stack, ServerLevel level, Entity entity, @org.jetbrains.annotations.Nullable EquipmentSlot slot, boolean worn) {
         if (!hasEffect(stack) || AdventureConfig.charmsInCuriosOnly && slot != null) {
             return;
         }
-        if (stack.get(Components.CHARM_ENABLED) && entity instanceof ServerPlayer player) {
+        boolean on = worn && wornOnly() || stack.get(Components.CHARM_ENABLED);
+        if (on && entity instanceof ServerPlayer player) {
             MobEffectInstance contained = getEffect(stack);
             MobEffectInstance active = player.getEffect(contained.getEffect());
             if (active == null || active.getDuration() < getCriticalDuration(active.getEffect())) {
@@ -102,12 +114,15 @@ public class PotionCharmItem extends Item implements ITabFiller {
 
     @Override
     public boolean isFoil(ItemStack stack) {
-        return stack.get(Components.CHARM_ENABLED);
+        return !wornOnly() && stack.get(Components.CHARM_ENABLED);
     }
 
     @Override
     public InteractionResult use(Level world, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        if (wornOnly()) {
+            return InteractionResult.PASS;
+        }
         if (!world.isClientSide()) {
             stack.set(Components.CHARM_ENABLED, !stack.get(Components.CHARM_ENABLED));
         }
@@ -132,12 +147,14 @@ public class PotionCharmItem extends Item implements ITabFiller {
             MobEffect effect = inst.getEffect().value();
 
             potionCmp.withStyle(effect.getCategory().getTooltipFormatting());
-            tooltip.accept(Component.translatable(this.getDescriptionId() + ".desc", potionCmp).withStyle(ChatFormatting.GRAY));
+            tooltip.accept(Component.translatable(this.getDescriptionId() + (wornOnly() ? ".desc_worn" : ".desc"), potionCmp).withStyle(ChatFormatting.GRAY));
             boolean enabled = stack.get(Components.CHARM_ENABLED);
             MutableComponent enabledCmp = Component.translatable(this.getDescriptionId() + (enabled ? ".enabled" : ".disabled"));
             enabledCmp.withStyle(enabled ? ChatFormatting.BLUE : ChatFormatting.RED);
             // Port fix: upstream builds this line but never adds it, so nothing tells the player how to switch a charm on.
-            tooltip.accept(Component.translatable(this.getDescriptionId() + ".desc2", enabledCmp).withStyle(ChatFormatting.GRAY));
+            if (!wornOnly()) {
+                tooltip.accept(Component.translatable(this.getDescriptionId() + ".desc2", enabledCmp).withStyle(ChatFormatting.GRAY));
+            }
             if (inst.getDuration() > 20) {
                 potionCmp = Component.translatable("potion.withDuration", potionCmp, MobEffectUtil.formatDuration(inst, 1, ctx.tickRate()));
             }

@@ -918,6 +918,7 @@
     "item.apotheosis.potion_charm_broke": "Invalid Potion Charm",
     "item.apotheosis.potion_charm": "Charm of %s",
     "item.apotheosis.potion_charm.desc": "Applies %s when active and in the inventory.",
+    "item.apotheosis.potion_charm.desc_worn": "Applies %s while worn in the Charm slot.",
     "item.apotheosis.potion_charm.desc2": "%s - Right click to toggle.",
     "item.apotheosis.potion_charm.desc3": "Source: %s",
     "item.apotheosis.potion_charm.enabled": "Enabled",

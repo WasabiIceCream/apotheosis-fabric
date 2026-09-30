@@ -24,6 +24,12 @@ public class AdventureConfig {
 
     public static boolean charmsInCuriosOnly = false;
 
+    /**
+     * Gameoverse: with Trinkets installed, a Potion Charm works only while worn in the Charm slot and is always on there
+     * (no right-click toggle). Without Trinkets the upstream behaviour applies.
+     */
+    public static boolean charmsWornOnly = true;
+
     public static boolean enableItemLinking = true;
 
     public static boolean enableManualWorldTierChanges = true;
