@@ -49,6 +49,19 @@ public class Apotheosis implements ModInitializer {
     @Override
     public void onInitialize() {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> currentServer = server);
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            // Gameoverse: which items the spell weapon category picked up (checked against the RPG Series configs).
+            var ids = net.minecraft.core.registries.BuiltInRegistries.ITEM.stream().filter(i -> {
+                try {
+                    return Apoth.LootCategories.SPELL_WEAPON.isValid(i.getDefaultInstance());
+                }
+                catch (RuntimeException e) {
+                    return false;
+                }
+            })
+                .map(i -> net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(i).toString()).sorted().toList();
+            LOGGER.info("Spell weapons ({}): {}", ids.size(), ids);
+        });
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> currentServer = null);
         Apoth.bootstrap();
         // 26.1 no longer sends recipes to clients. The salvaging, gem cutting and reforging

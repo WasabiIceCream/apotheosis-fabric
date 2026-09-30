@@ -34,6 +34,7 @@ public class AffixRegistry extends TieredDynamicRegistry<Affix> {
      */
     public static final SubtypedSerializer<Affix> SERIALIZER = RegistrySerializer.<Affix>subtypedSynced("affixes")
         .register(Apotheosis.loc("attribute"), AttributeAffix.CODEC)
+        .register(Apotheosis.loc("optional_attribute"), OptionalAttributeAffix.CODEC)
         .register(Apotheosis.loc("multi_attr"), MultiAttrAffix.CODEC)
         .register(Apotheosis.loc("mob_effect"), MobEffectAffix.CODEC)
         .register(Apotheosis.loc("damage_reduction"), DamageReductionAffix.CODEC)

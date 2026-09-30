@@ -27,7 +27,7 @@ public class ProjectileHooks {
      * <p>
      * The weapon is the arrow's own recorded weapon ({@link AbstractArrow#getWeaponItem()}, set by vanilla bows and
      * crossbows and by modded bows that pass it on), else upstream's choice: the owner's item in use, else the main hand
-     * item if it's a ranged weapon, else the off hand item.
+     * item if it's a ranged weapon (or, Gameoverse, a spell weapon), else the off hand item.
      */
     public static void onProjectileAdded(Projectile proj) {
         if (!(proj.getOwner() instanceof LivingEntity user)) return;
@@ -43,7 +43,7 @@ public class ProjectileHooks {
         }
         if (weapon.isEmpty()) {
             weapon = user.getMainHandItem();
-            if (weapon.isEmpty() || !LootCategory.forItem(weapon).isRanged()) {
+            if (weapon.isEmpty() || !firesProjectiles(LootCategory.forItem(weapon))) {
                 weapon = user.getOffhandItem();
             }
         }
@@ -73,6 +73,11 @@ public class ProjectileHooks {
         AffixHelper.getAffixes(proj).values().forEach(inst -> {
             if (inst.isValid()) inst.onProjectileImpact(proj, res, res.getType());
         });
+    }
+
+    /** Upstream: ranged weapons. Gameoverse: spell weapons too, whose projectile spells carry the staff's affixes. */
+    private static boolean firesProjectiles(LootCategory cat) {
+        return cat.isRanged() || cat == dev.shadowsoffire.apotheosis.Apoth.LootCategories.SPELL_WEAPON;
     }
 
     public static boolean isMagical(AbstractArrow arrow) {

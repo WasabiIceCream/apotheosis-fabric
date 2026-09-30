@@ -1,0 +1,43 @@
+{
+    "type": "apotheosis:optional_attribute",
+    "attribute": "spell_power:haste",
+    "categories": [
+        "apotheosis:spell_weapon"
+    ],
+    "definition": {
+        "affix_type": "stat",
+        "exclusive_set": [],
+        "weights": {
+            "quality": 0.1,
+            "weight": 25
+        }
+    },
+    "operation": "add_multiplied_base",
+    "values": {
+        "apotheosis:common": {
+            "min": 0.02,
+            "max": 0.04,
+            "step": 0.01
+        },
+        "apotheosis:uncommon": {
+            "min": 0.03,
+            "max": 0.05,
+            "step": 0.01
+        },
+        "apotheosis:rare": {
+            "min": 0.04,
+            "max": 0.06,
+            "step": 0.01
+        },
+        "apotheosis:epic": {
+            "min": 0.05,
+            "max": 0.08,
+            "step": 0.01
+        },
+        "apotheosis:mythic": {
+            "min": 0.06,
+            "max": 0.1,
+            "step": 0.01
+        }
+    }
+}

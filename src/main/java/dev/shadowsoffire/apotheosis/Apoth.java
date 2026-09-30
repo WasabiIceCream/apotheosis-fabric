@@ -309,6 +309,12 @@ public class Apoth {
         public static final LootCategory BOOTS = register("boots", armorSlot(EquipmentSlot.FEET), EquipmentSlotGroup.FEET);
         public static final LootCategory SHIELD = register("shield", s -> s.getItem() instanceof ShieldItem, EquipmentSlotGroup.HAND);
         public static final LootCategory TRIDENT = register("trident", s -> s.getItem() instanceof TridentItem, EquipmentSlotGroup.MAINHAND);
+        /**
+         * Gameoverse addition: Spell Engine staves and wands (see {@link dev.shadowsoffire.apotheosis.util.SpellWeapons}). Checked
+         * before {@link #MELEE_WEAPON} so they roll spell affixes instead of melee ones. Gems use their melee weapon bonus on
+         * these unless they define a spell weapon one.
+         */
+        public static final LootCategory SPELL_WEAPON = register("spell_weapon", dev.shadowsoffire.apotheosis.util.SpellWeapons::isSpellWeapon, EquipmentSlotGroup.MAINHAND, 1900);
         public static final LootCategory MELEE_WEAPON = register("melee_weapon", s -> s.is(ItemTags.SWORDS) || getDefaultModifiers(s).compute(Attributes.ATTACK_DAMAGE, 1, EquipmentSlot.MAINHAND) > 1,
             EquipmentSlotGroup.MAINHAND, 2000);
         public static final LootCategory SHEARS = register("shears", s -> s.getItem() instanceof ShearsItem, EquipmentSlotGroup.MAINHAND, 2500);

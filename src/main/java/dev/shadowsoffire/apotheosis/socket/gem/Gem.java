@@ -14,6 +14,7 @@ import com.google.common.base.Preconditions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import dev.shadowsoffire.apotheosis.Apoth;
 import dev.shadowsoffire.apotheosis.Apoth.BuiltInRegs;
 import dev.shadowsoffire.apotheosis.Apoth.Items;
 import dev.shadowsoffire.apotheosis.affix.Affix;
@@ -54,6 +55,7 @@ public class Gem implements CodecProvider<Gem>, Weighted, Constrained {
 
     protected transient final Map<LootCategory, GemBonus> bonusMap = new IdentityHashMap<>();
     protected transient final List<GemBonus> extraBonuses = new ArrayList<>();
+    protected transient GemBonus spellWeaponFallback;
 
     public Gem(TieredWeights weights, Constraints constraints, Purity minPurity, List<GemBonus> bonuses, boolean unique) {
         this.weights = weights;
@@ -68,6 +70,7 @@ public class Gem implements CodecProvider<Gem>, Weighted, Constrained {
                 this.bonusMap.put(category.value(), bonus);
             }
         }
+        this.applySpellWeaponFallback();
     }
 
     /**
@@ -235,7 +238,7 @@ public class Gem implements CodecProvider<Gem>, Weighted, Constrained {
      */
     private void validateBonus(GemBonus bonus) {
         for (Holder<LootCategory> category : bonus.getGemClass().types()) {
-            if (this.bonusMap.containsKey(category.value())) {
+            if (this.bonusMap.containsKey(category.value()) && !(category.value() == Apoth.LootCategories.SPELL_WEAPON && this.bonusMap.get(category.value()) == this.spellWeaponFallback)) {
                 GemBonus conflict = this.bonusMap.get(category.value());
                 throw new IllegalArgumentException("Gem Bonus for class %s conflicts with existing bonus for class %s (categories overlap)".formatted(bonus.getGemClass().key(), conflict.getGemClass().key()));
             }
@@ -248,6 +251,21 @@ public class Gem implements CodecProvider<Gem>, Weighted, Constrained {
         for (Holder<LootCategory> category : bonus.getGemClass().types()) {
             this.bonusMap.put(category.value(), bonus);
         }
+        this.applySpellWeaponFallback();
+    }
+
+    /**
+     * Gameoverse: spell weapons were melee weapons before they got their own category, so they use the gem's melee weapon
+     * bonus unless a bonus names {@code apotheosis:spell_weapon} itself.
+     */
+    private void applySpellWeaponFallback() {
+        LootCategory spell = Apoth.LootCategories.SPELL_WEAPON;
+        GemBonus current = this.bonusMap.get(spell);
+        if (current != null && current != this.spellWeaponFallback) return;
+        GemBonus melee = this.bonusMap.get(Apoth.LootCategories.MELEE_WEAPON);
+        this.spellWeaponFallback = melee;
+        if (melee != null) this.bonusMap.put(spell, melee);
+        else this.bonusMap.remove(spell);
     }
 
     public static class Builder {

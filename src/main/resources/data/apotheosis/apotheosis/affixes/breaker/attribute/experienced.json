@@ -2,7 +2,8 @@
     "type": "apotheosis:attribute",
     "attribute": "apothic_attributes:experience_gained",
     "categories": [
-        "apotheosis:breaker"
+        "apotheosis:breaker",
+        "apotheosis:spell_weapon"
     ],
     "definition": {
         "affix_type": "stat",
