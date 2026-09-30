@@ -18,7 +18,10 @@
     "ServerPlayerCreativeFlightMixin",
     "AnvilGemSmashingMixin",
     "BaseSpawnerAccessor",
-    "ChestUnderSpawnerMixin"
+    "ChestUnderSpawnerMixin",
+    "ServerLevelProjectileMixin",
+    "ProjectileImpactMixin",
+    "DamageSourceMagicalMixin"
   ],
   "client": [
     "ClientAdvancementsAccessor"

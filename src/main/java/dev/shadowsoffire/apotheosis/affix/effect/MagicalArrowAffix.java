@@ -14,15 +14,10 @@ import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Port note (NeoForge -> Fabric): dropped {@code modifyIncomingDamageTags} — the actual gameplay
- * effect, which mutates an incoming {@code DamageSource}'s type tags (adds "is_magic" +
- * "bypasses_armor") when hit by a magical-arrow-affixed arrow. It used NeoForge's
- * {@code EntityInvulnerabilityCheckEvent} and {@code DamageSourceExtension} (a NeoForge-only
- * interface mixed into {@code DamageSource} allowing mutable damage tags after creation) —
- * neither has a Fabric/vanilla equivalent; a real implementation needs a mixin into damage-type
- * resolution. Not called from anywhere in the ported affix spine itself (upstream wires it from
- * the not-yet-ported {@code AdventureEvents} event-bus hub) — TODO: design the mixin when
- * {@code AdventureEvents} is reached.
+ * Port note (NeoForge -> Fabric): upstream's {@code modifyIncomingDamageTags} adds {@code is_magic} and
+ * {@code bypasses_armor} to the damage source through NeoForge's {@code DamageSourceExtension}. Here
+ * {@code ProjectileHooks} flags the arrow when it's fired and {@code DamageSourceMagicalMixin} answers those two tag
+ * checks for its damage (0.4.3).
  */
 public class MagicalArrowAffix extends Affix {
 
