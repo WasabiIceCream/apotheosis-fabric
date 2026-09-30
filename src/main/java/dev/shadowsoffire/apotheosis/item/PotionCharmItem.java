@@ -136,6 +136,8 @@ public class PotionCharmItem extends Item implements ITabFiller {
             boolean enabled = stack.get(Components.CHARM_ENABLED);
             MutableComponent enabledCmp = Component.translatable(this.getDescriptionId() + (enabled ? ".enabled" : ".disabled"));
             enabledCmp.withStyle(enabled ? ChatFormatting.BLUE : ChatFormatting.RED);
+            // Port fix: upstream builds this line but never adds it, so nothing tells the player how to switch a charm on.
+            tooltip.accept(Component.translatable(this.getDescriptionId() + ".desc2", enabledCmp).withStyle(ChatFormatting.GRAY));
             if (inst.getDuration() > 20) {
                 potionCmp = Component.translatable("potion.withDuration", potionCmp, MobEffectUtil.formatDuration(inst, 1, ctx.tickRate()));
             }
