@@ -1,0 +1,29 @@
+{
+    "application_chance": {
+        "haven": 0.02,
+        "frontier": 0.04,
+        "ascent": 0.07,
+        "summit": 0.1,
+        "pinnacle": 0.12
+    },
+    "conditions": [
+        {
+            "type": "apotheosis:not",
+            "spawn_condition": {
+                "type": "apotheosis:spawn_type",
+                "spawn_types": [
+                    "spawner",
+                    "trial_spawner"
+                ]
+            }
+        },
+        {
+            "type": "apotheosis:is_monster"
+        }
+    ],
+    "modifiers": [
+        {
+            "type": "apotheosis:random_affix_item"
+        }
+    ]
+}

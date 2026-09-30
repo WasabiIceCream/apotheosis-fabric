@@ -6,9 +6,11 @@ by Shadows-of-Fire, built for the Gameoverse Minecraft server (Fabric 26.1.2).
 Apotheosis normally ships as six interconnected mods covering rarity/loot
 tiers, dynamic affixes, gem sockets, custom enchanting, spawners, and
 boss-summoning gateways, all NeoForge-only. This port covers just the
-**Adventure module**: rarities, affixes, gem sockets and cutting, and the
-loot injection that lets mobs/chests drop affixed gear. Enchanting,
-spawners, and bosses are out of scope.
+**Adventure module**: rarities, affixes, gem sockets and cutting, the
+loot injection that lets mobs/chests drop affixed gear, and (since 0.4.0)
+the mob features: invaders, elites and augmented monsters. Enchanting,
+spawners, gateways and the boss dungeon/rogue spawner worldgen are out of
+scope.
 
 ## What it adds
 
@@ -20,8 +22,17 @@ spawners, and bosses are out of scope.
 - Reforging, salvaging, and augmenting tables to reroll, break down, or
   upgrade affixed gear
 - Loot tables updated so this content actually drops in the world
+- Invaders: named bosses in affixed gear that sometimes replace a natural
+  monster spawn (from the Frontier World Tier up), announced to nearby players
+- Elites: rare minibosses (Undead Knight, Honeyed Archer, Withering Archer,
+  Craig) that ordinary spawns can turn into
+- Monsters that sometimes spawn wearing a random affixed item, more often at
+  higher World Tiers
+- `/apoth spawn_boss` and `/apoth spawn_elite` for operators, and the
+  `apotheosis:is_invader` / `apotheosis:is_elite` entity predicates for
+  advancements (see `DEVLOG.md` for the JSON)
 
-Depends on [Placebo](https://github.com/WasabiIceCream/placebo-fabric) (0.1.1+), a
+Depends on [Placebo](https://github.com/WasabiIceCream/placebo-fabric) (0.1.2+), a
 Fabric port of Apotheosis's own base library, and, since 0.3.0,
 [Apothic Attributes](https://github.com/WasabiIceCream/Apothic-Attributes) (Fabric port), the
 attribute library upstream Apotheosis requires. Both are composite builds: clone them next to this

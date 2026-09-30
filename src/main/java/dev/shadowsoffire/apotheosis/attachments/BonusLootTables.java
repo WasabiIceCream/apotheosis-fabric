@@ -18,15 +18,9 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 /**
  * Bonus loot tables can be attached to a {@link Mob} and will be rolled when the mob is killed.
  * <p>
- * Port note: this record itself is vanilla-only, ported verbatim. Its only real consumers
- * upstream (boss data, Twilight Forest treasure goblin compat) are boss/spawner-related and
- * out of this port's Adventure-module scope, so the NeoForge attachment-registration plumbing
- * ({@code Apoth.Attachments.BONUS_LOOT_TABLES}, the {@code MobMixin} death hook that calls
- * {@link #drop}) is intentionally not ported yet. When bosses are ever in scope, that plumbing
- * should use Cardinal Components API (already installed on the target server) instead of a
- * NeoForge-style attachment, and the death hook should use
- * {@code net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH} (verified
- * during initial research to cover NeoForge's {@code LivingDeathEvent} for this exact purpose).
+ * Port note: the record is vanilla-only, ported verbatim. The NeoForge attachment is a Fabric data attachment
+ * ({@code Apoth.Attachments.BONUS_LOOT_TABLES}, persistent) and the drop hook is {@code MobBossMixin}, injected where
+ * upstream's {@code MobMixin} is ({@code Mob#dropFromLootTable}). Invaders and elites attach their {@code bonus_loot}.
  */
 public record BonusLootTables(List<ResourceKey<LootTable>> tables) {
 

@@ -13,3 +13,7 @@ accessible field net/minecraft/world/entity/projectile/arrow/AbstractArrow baseD
 # and the protected `hoveredSlot` field is only accessible in-hierarchy — widen it directly.
 accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen hoveredSlot Lnet/minecraft/world/inventory/Slot;
 accessible field net/minecraft/client/renderer/item/properties/select/SelectItemModelProperties ID_MAPPER Lnet/minecraft/util/ExtraCodecs$LateBoundIdMapper;
+
+# mobs.types.Invader strips the villager-targeting goal from invaders (upstream: NeoForge access transformer).
+accessible field net/minecraft/world/entity/Mob goalSelector Lnet/minecraft/world/entity/ai/goal/GoalSelector;
+accessible field net/minecraft/world/entity/ai/goal/target/NearestAttackableTargetGoal targetType Ljava/lang/Class;

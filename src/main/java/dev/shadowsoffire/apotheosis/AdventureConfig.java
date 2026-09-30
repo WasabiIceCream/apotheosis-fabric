@@ -34,4 +34,25 @@ public class AdventureConfig {
 
     public static int rerollLevelCost = 175;
 
+    // Boss Stats (upstream's "bosses" config category; same defaults, plain constants like the rest of this class)
+
+    /** If boss items are always cursed. Enable this if you want bosses to be less overpowered by always giving them a negative effect. */
+    public static boolean curseBossItems = false;
+
+    /** The range at which boss spawns will be announced. If you are closer than this number of blocks (ignoring y-level), you will receive the announcement. */
+    public static float bossAnnounceRange = net.minecraft.world.level.NaturalSpawner.SPAWN_DISTANCE_BLOCK + 12;
+
+    /**
+     * The time, in ticks, that must pass before a player may trigger another natural invader spawn. When an invader spawns,
+     * this cooldown is applied to the triggering player and to all same-tier players within the boss announcement range.
+     * May be overridden per-dimension via the invader spawn rules.
+     */
+    public static int bossSpawnCooldown = 3600;
+
+    /** If true, invading bosses will automatically target the closest player. */
+    public static boolean bossAutoAggro = false;
+
+    /** If true, bosses will glow when they spawn. */
+    public static boolean bossGlowOnSpawn = true;
+
 }

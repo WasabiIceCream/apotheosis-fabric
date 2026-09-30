@@ -11,6 +11,12 @@ worked out ahead of time in a separate planning pass covering the full
 research, scope rationale, and NeoForge→Fabric API mapping table (not
 included in this repo).
 
+*Scope update (0.3.0, 0.4.0): Apothic-Attributes became a dependency in 0.3.0. The
+mob features (invaders, elites, augmentations; upstream's `mobs` package) were
+wrongly filed under "Gateways/boss scope" in the entries below; they are part of
+the Adventure module and were ported in 0.4.0. Gateways, spawners, enchanting and
+the boss dungeon/rogue spawner worldgen remain out of scope.*
+
 ## Status (2026-09-07)
 
 `./gradlew compileJava` succeeds — 16 files ported. `attachments` (1 file) and
@@ -455,6 +461,9 @@ rendering, same bucket as `GemCuttingScreen`/`GemCaseScreen`.
   the port actually works once deployed, independent of any unbuilt GUI.
   `BossCommand` excluded (boss scope); `DebugWeightCommand` drops its
   `elites`/`invaders` subcommands (Gateway boss-wave registries, excluded).
+  *(Correction, 0.4.0: invaders and elites are the Adventure module's own
+  natural-spawn features, not Gateways content; both subcommands and a
+  ported `BossCommand` are back, see the 0.4.0 entry.)*
   Replaces NeoForge's `ApotheosisCommandEvent` (a custom event wrapping a
   root literal — the "known coupling point" flagged unresolved for most of
   this port, now resolved) with Fabric API's `CommandRegistrationCallback`.
@@ -1191,3 +1200,194 @@ pending. Still out of scope and unchanged: the 24 affixes and several gems that 
 `apothic_attributes`, and gem bonus types not yet ported (`all_stats`,
 `bloody_arrow`, `drop_transform`, `leech_block`, `mageslayer`, `omnetic`,
 `radial`), which is why only 4 of upstream's 21 gems ship.
+
+## 0.4.0 (2026-09-29): mob features (invaders, elites, augmentations)
+
+Ported upstream's `mobs` package (26.1 branch) and what it needs. Requires
+`placebo-fabric` 0.1.2 (gear sets, and a dynamic-tag ordering fix, see below).
+
+### What was ported
+
+- `mobs/types`: `Invader`, `Elite`, `Augmentation`. `mobs/util`: `AffixData`,
+  `BasicBossData`, `BossStats`, `EntityModifier` (`mob_effect`, `attribute`,
+  `gear_set`, `random_affix_item`), `SpawnCondition` (`spawn_type`,
+  `surface_type`, `has_tag`, `is_monster`, `nbt`, `and`, `or`, `not`, `xor`),
+  `SupportingEntity`, `SurfaceType`. `mobs/registries`: `InvaderRegistry`,
+  `EliteRegistry`, `AugmentRegistry`, plus a new `InvaderSpawnRulesRegistry`.
+  `mobs/InvaderSpawnRules`, `mobs/ApothMobEvents`.
+- Supporting pieces: `NameHelper` boss-name generation (upstream's default name
+  pools), `BonusLootTables` attachment + drop hook, `BossSpawnPayload` and its
+  client effects (invader sound, rarity-coloured beacon beam for 20 s),
+  `AdventureConfig` boss options (`curseBossItems`, `bossAnnounceRange`,
+  `bossSpawnCooldown`, `bossAutoAggro`, `bossGlowOnSpawn`, upstream defaults,
+  plain constants like the rest of that class), upstream's small boss hooks
+  from `AdventureEvents` (bosses immune to suffocation, golem-type invaders may
+  despawn after 10 minutes, elites' effect-cloud passengers removed on death,
+  `apoth.burns_in_sun` mobs burn in daylight), `EntityInvoker`.
+- Commands: upstream's `/apoth spawn_boss <pos|entity> [invader] [rarity]
+  [send_notification]`, a new `/apoth spawn_elite <pos|entity> [elite]`, and
+  the `elites`/`invaders` subcommands of `/apoth debug weights`.
+- Data, copied from upstream's `src/generated/resources` with upstream paths:
+  27 `placebo:gear_sets` (`data/apotheosis/placebo/gear_sets/**`) and their 10
+  tags (`data/apotheosis/tags/placebo/gear_sets/*.json`), 23
+  `apothic_invaders`, 4 `apothic_elites`, 1 `apothic_augments`, the
+  `entity/boss_drops` and `entity/rare_boss_drops` loot tables, and the invader
+  spawn rules (converted, below). Not copied: the treasure goblin (Twilight
+  Forest compat), Gateways gear use aside from shipping the two
+  `gateway_only` gear sets (weight 0, harmless, kept to match upstream).
+- Not ported: `BossSpawnerBlock`, the boss summoner item, rogue spawners and
+  boss dungeons (worldgen, a later phase), Jade/WTHIT boss tooltips.
+
+### NeoForge -> Fabric decisions
+
+- **Spawn hook and cancellation.** NeoForge fires `FinalizeSpawnEvent` before
+  `Mob#finalizeSpawn` and lets a handler cancel the whole spawn. Invaders only
+  replace `NATURAL`/`CHUNK_GENERATION` spawns, and both come from
+  `NaturalSpawner` (`spawnCategoryForPosition`, `spawnMobsForChunkGeneration`),
+  so `NaturalSpawnerInvaderMixin` wraps exactly those two `finalizeSpawn` calls
+  (MixinExtras `@WrapOperation`): if an invader spawns, the original mob's
+  `finalizeSpawn` never runs (no chicken jockeys or other side effects left
+  behind) and the following `addFreshEntityWithPassengers` for that mob is
+  skipped, via a `@Share`d flag reset on every call. The mob never enters the
+  world. The rest of the pipeline (monster tier augments, `apothic_augments`,
+  elite selection) runs for every spawn reason at the head of
+  `Mob#finalizeSpawn` (`MobFinalizeSpawnMixin`, replacing
+  `MobSpawnAugmentMixin`). Every subclass reaches it through `super`, before its
+  own equipment logic, like the NeoForge event.
+- **Limit:** an elite with `"finalize": false` can't cancel a subclass's own
+  `finalizeSpawn` from inside `Mob#finalizeSpawn`, so such elites keep vanilla
+  randomisation in slots their gear set doesn't cover (seen: a Haven Undead
+  Knight stray kept its bow, since its Haven gear set is armour only).
+- **Tier source changed:** the old `MobSpawnAugmentMixin` used the highest World
+  Tier among players within 128 blocks. Now the nearest player's tier is used
+  for everything, as upstream. Kept from before: tier augments only apply to
+  `Monster`s (upstream: every `Mob`).
+- **Elite transformation** is queued on `ServerEntityEvents.ENTITY_LOAD` and run
+  at the end of the server tick (upstream: directly in `EntityJoinLevelEvent`,
+  which fires before the entity is added). The transformation adds supporting
+  entities, and adding entities from inside the entity manager's tracking
+  callback can modify the section being iterated. After transformation
+  `apoth.miniboss` is boolean `true` and the player key is removed, so a reload
+  never transforms twice.
+- **Join-level fallback:** monsters that never went through `finalizeSpawn`
+  (invaders, NBT/structure mobs, mobs saved before this version) get the
+  nearest player's monster tier augments the first time they load with a player
+  online (upstream `applyMissedTierAugments`, mob half).
+- **Attachments:** `INVADER_COOLDOWN` (player, persistent, kept on death),
+  `TIER_AUGMENTS_APPLIED` (mob, persistent) and `BONUS_LOOT_TABLES` (mob,
+  persistent) are Fabric Data Attachment API types in `Apoth.Attachments`.
+  `getPersistentData()` keys (`apoth.boss`, `apoth.boss.rarity`,
+  `apoth.miniboss`, ...) live in the existing `PersistentDataComponent`. Entity
+  NBT written for NeoForge (`"NeoForgeData": {...}`, used by the Undead
+  Knight's horse) is merged into that component when invaders, elites and
+  supporting entities are built, so upstream's data works unchanged.
+- **Invader spawn rules:** upstream's NeoForge data map on `dimension_type` is a
+  Placebo dynamic registry, `apotheosis:invader_spawn_rules`, one file per
+  dimension type, keyed by the file's namespace and path:
+  `data/minecraft/apotheosis/invader_spawn_rules/{overworld,the_nether,the_end}.json`
+  and `data/twilightforest/apotheosis/invader_spawn_rules/twilight_forest_type.json`.
+  Same body as one data-map value (`spawn_chances` per tier, optional
+  `cooldown`, `surface_type`), upstream values. A dimension type without a
+  file never spawns invaders; an entry for an absent mod's dimension is just
+  never looked up (no `neoforge:mod_loaded` condition needed).
+- **Chunk-generation threads:** `spawnMobsForChunkGeneration` runs on worldgen
+  threads. The cooldown check-and-set is synchronized, the announcement is
+  handed to the server thread, the generation context reads the biome from the
+  generating region, and any exception in the invader roll is logged instead
+  of breaking generation.
+- **Client:** beams are submitted from Fabric's `LevelRenderEvents.COLLECT_SUBMITS`
+  (same collector/pose stack/render state as NeoForge's
+  `SubmitCustomGeometryEvent`), timer on `END_CLIENT_TICK`.
+- Apothic Enchanting's max-level override isn't ported: invader item
+  enchantment upgrades clamp to the enchantment's own max level.
+- `/apoth spawn_boss`: upstream's entity branch read the `pos` argument when
+  `send_notification` was given; fixed. Both spawn commands fall back to a
+  Haven, zero-luck context when no player is within 64 blocks (upstream fails),
+  so they work from the console/RCON.
+- Debug logging: `APOTH_DEBUG_MOBS=on` in the environment logs every step at
+  INFO (upstream: DEBUG).
+
+### Data deviations from upstream
+
+- **`random_affix_items` scales with World Tier.** `Augmentation`'s
+  `application_chance` now accepts either upstream's float (all tiers) or a
+  per-tier map, the same shape as `spawn_chances` and our `random_enchant`
+  modifier; a tier left out rolls 0%. Our copy uses
+  `{"haven": 0.02, "frontier": 0.04, "ascent": 0.07, "summit": 0.10, "pinnacle": 0.12}`
+  (upstream: flat 0.12). The chance compares with `<`, so 0 never applies.
+- Craig's name colour `rainbow` is `light_purple`: Placebo's animated gradient
+  colour can't be registered as a named `TextColor` in this port (and a named
+  colour the client doesn't know would break the component's network decode).
+- Undead Knight's skeleton horse NBT used pre-1.21 attribute ids
+  (`generic.movement_speed`, `generic.knockback_resistance`, an upstream data
+  bug: the attributes were silently dropped); now `minecraft:` ids.
+- `rare_boss_drops` has a weight-5 entry for `#apotheosis:boss_music_discs`;
+  the discs aren't ported, so the tag ships empty and that entry drops nothing.
+
+### Entity predicates
+
+Registered as entity sub-predicates, used under `type_specific`:
+
+```json
+{ "type": "apotheosis:is_invader" }
+{ "type": "apotheosis:is_invader", "min_rarity": "apotheosis:rare" }
+{ "type": "apotheosis:is_invader", "id": "apotheosis:overworld/zombie" }
+{ "type": "apotheosis:is_elite" }
+{ "type": "apotheosis:is_elite", "min_rarity": "apotheosis:epic", "id": "apotheosis:overworld/craig" }
+```
+
+`min_rarity` passes at or above that rarity by `sort_index` (common < uncommon <
+rare < epic < mythic). An invader's rarity is its boss rarity (`apoth.boss.rarity`);
+an elite's is the rarity of its affixed item (`apoth.miniboss.rarity`, new), so an
+elite without an affixed item fails any `min_rarity`. `id` is the definition id
+(`apoth.boss.id` / `apoth.miniboss.id`, new; invaders spawned before 0.4.0 don't
+have one). `is_elite` is new (upstream has only `is_invader`). Example criterion:
+
+```json
+"kill_rare_invader": {
+  "trigger": "minecraft:player_killed_entity",
+  "conditions": { "entity": [ { "condition": "minecraft:entity_properties", "entity": "this",
+    "predicate": { "type_specific": { "type": "apotheosis:is_invader", "min_rarity": "apotheosis:rare" } } } ] }
+}
+```
+
+The Ascent advancement still uses `apotheosis:is_monster` (see `WorldTier#isUnlocked`).
+
+### Found while testing
+
+- Fabric sorts independent reload listeners by id, so `apothic_invaders` applied
+  before `rarities` and every invader failed ("Trying to access unbound value:
+  apotheosis:uncommon"). `InvaderRegistry`/`EliteRegistry` now depend on the
+  rarity registry (same fix as `AffixRegistry`).
+- Every gear-set tag failed with "missing references": Placebo's tag manager
+  ran before the registries. Fixed in placebo-fabric 0.1.2.
+- `apotheosis.mixins.json` now sets `injectors.defaultRequire: 1`, so an
+  injector that stops matching after a Minecraft update fails at boot instead
+  of silently doing nothing (all existing injectors still apply).
+
+### Tested (local server, no player online)
+
+Boot: no new ERRORs (only the known moonlight x2 / tapir lines). Counts:
+`Registered 27 placebo:gear_sets`, `Loaded 10 tags for placebo:gear_sets`,
+`Registered 23 apotheosis:apothic_invaders`, `4 apothic_elites`,
+`1 apothic_augments`, `4 invader_spawn_rules`; affixes 94, gems 26 unchanged.
+
+- `/apoth spawn_boss 1600 120 1600 apotheosis:overworld/zombie apotheosis:epic`:
+  generated name in the epic colour, Haven chain gear set, chestplate affixed
+  (epic, 5 affixes, `from_boss`, "Forosto's ..." name, drop chance 2.0),
+  boss_stats attribute modifiers (max health +95.8, speed, attack, armor,
+  scale), fire resistance + glowing, `apoth.boss*` keys, bonus loot attachment.
+- `/apoth spawn_elite ... apotheosis:overworld/undead_knight`: a stray named
+  Undead Knight, leather set, leggings affixed (uncommon), elite keys set.
+  Craig: goat named from the lang key; its `jeb_` sheep support spawned (and
+  was killed by the wolf invader spawned next to it).
+- Predicates via `execute if predicate {...}`: is_invader (plain, min epic,
+  id) match the epic zombie; min mythic and a wrong id don't; is_elite doesn't
+  match it. is_elite (plain, min uncommon, id) match the knight; min rare and
+  is_invader don't.
+- With `APOTH_DEBUG_MOBS=on`: `/summon zombie` hits the finalize hook, and
+  generating new chunks runs chunk-generation spawns through the invader
+  wrapper (logged per mob) and still adds them.
+- Not tested (needs a player online): a natural invader replacing a spawn, the
+  announcement/beam/sound on a client, random affix items and elites rolling
+  on natural spawns, the cooldown.

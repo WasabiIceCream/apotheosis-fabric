@@ -31,6 +31,15 @@ public class PersistentDataComponent implements CardinalComponent {
         return KEY.get(entity).tag;
     }
 
+    /**
+     * Copies a NeoForge-format {@code "NeoForgeData"} compound from entity NBT written for upstream (e.g. an invader's,
+     * elite's or supporting entity's {@code nbt} field) into this component, since vanilla/Fabric entity loading
+     * ignores that key. Used by the mob features so upstream's data files work unchanged.
+     */
+    public static void mergeNeoForgeData(Entity entity, CompoundTag nbt) {
+        nbt.getCompound("NeoForgeData").ifPresent(data -> get(entity).merge(data));
+    }
+
     @Override
     public void readData(ValueInput in) {
         in.read("data", CompoundTag.CODEC).ifPresent(this.tag::merge);

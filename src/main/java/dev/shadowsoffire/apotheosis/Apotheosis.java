@@ -17,14 +17,21 @@ import net.minecraft.server.MinecraftServer;
  * Unofficial Fabric port of Apotheosis's Adventure module.
  *
  * Original mod: https://github.com/Shadows-of-Fire/Apotheosis (NeoForge only).
- * This port covers affixes, rarities, gems, and sockets — not enchanting,
- * spawners, or bosses. See mod-dev/apotheosis-fabric/README.md for scope
- * and porting notes.
+ * This port covers affixes, rarities, gems, sockets, and (since 0.4.0) the
+ * mob features: invaders, elites and augmentations. Not enchanting, spawners,
+ * gateways, or the boss dungeon/rogue spawner worldgen. See
+ * mod-dev/apotheosis-fabric/README.md for scope and porting notes.
  */
 public class Apotheosis implements ModInitializer {
 
     public static final String MODID = "apotheosis";
     public static final Logger LOGGER = LoggerFactory.getLogger("Apotheosis");
+
+    /**
+     * Set the environment variable {@code APOTH_DEBUG_MOBS=on} to log every step of the mob spawn processing
+     * (invaders, augmentations, elites). Port note: logged at INFO here (upstream: DEBUG), since the flag is already opt-in.
+     */
+    public static final boolean DEBUG_MOBS = "on".equalsIgnoreCase(System.getenv("APOTH_DEBUG_MOBS"));
 
     /** Whether the (currently unported, TODO-stubbed) Game Stages compat should be active. */
     public static final boolean STAGES_LOADED = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("gamestages");
@@ -53,12 +60,16 @@ public class Apotheosis implements ModInitializer {
         // any entry (silently — see Gem.java's promotePartial diagnostic added to catch this),
         // which in turn made every single gem fail its own "no bonuses were provided" precondition.
         dev.shadowsoffire.apotheosis.socket.gem.bonus.GemBonus.initCodecs();
+        dev.shadowsoffire.apotheosis.mobs.util.SpawnCondition.initCodecs();
+        dev.shadowsoffire.apotheosis.mobs.util.EntityModifier.initCodecs();
         registerDynamicRegistries();
         registerRadialMiningHook();
         dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.LinkItemToChatPayload.Provider());
         dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.RerollResultPayload.Provider());
         dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.GemCaseSelectPayload.Provider());
         dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.WorldTierPayload.Provider());
+        dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.BossSpawnPayload.Provider());
+        registerMobHooks();
         registerCommands();
         LOGGER.info("Apotheosis (Fabric Adventure port) initializing");
     }
@@ -80,7 +91,24 @@ public class Apotheosis implements ModInitializer {
         dev.shadowsoffire.apotheosis.socket.gem.PurityWeightsRegistry.INSTANCE.registerToBus();
         dev.shadowsoffire.apotheosis.socket.gem.ExtraGemBonusRegistry.INSTANCE.registerToBus();
         dev.shadowsoffire.apotheosis.tiers.augments.TierAugmentRegistry.INSTANCE.registerToBus();
+        dev.shadowsoffire.apotheosis.mobs.registries.InvaderRegistry.INSTANCE.registerToBus();
+        dev.shadowsoffire.apotheosis.mobs.registries.EliteRegistry.INSTANCE.registerToBus();
+        dev.shadowsoffire.apotheosis.mobs.registries.AugmentRegistry.INSTANCE.registerToBus();
+        dev.shadowsoffire.apotheosis.mobs.registries.InvaderSpawnRulesRegistry.INSTANCE.registerToBus();
         dev.shadowsoffire.apotheosis.loot.modifiers.GlobalLootModifierRegistry.INSTANCE.registerToBus();
+    }
+
+    /**
+     * Fabric event wiring for the mob features in {@code mobs.ApothMobEvents} (upstream: NeoForge event subscribers in
+     * {@code ApothMobEvents} and {@code AdventureEvents}). The spawn hooks themselves are mixins
+     * ({@code MobFinalizeSpawnMixin}, {@code NaturalSpawnerInvaderMixin}, {@code MobBossMixin}).
+     */
+    private static void registerMobHooks() {
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register(dev.shadowsoffire.apotheosis.mobs.ApothMobEvents::onEntityLoad);
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(dev.shadowsoffire.apotheosis.mobs.ApothMobEvents::processPendingElites);
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> dev.shadowsoffire.apotheosis.mobs.ApothMobEvents.clearPending());
+        net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DAMAGE.register(dev.shadowsoffire.apotheosis.mobs.ApothMobEvents::allowDamage);
+        net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register(dev.shadowsoffire.apotheosis.mobs.ApothMobEvents::afterDeath);
     }
 
     /**
@@ -113,7 +141,7 @@ public class Apotheosis implements ModInitializer {
      * Port note (NeoForge -> Fabric): replaces upstream's {@code ApotheosisCommandEvent} (a
      * NeoForge custom event wrapping a root literal builder — never itself resolved during this
      * port, see the "known coupling point" note in the README) with Fabric API's
-     * {@code CommandRegistrationCallback}. Drops {@code BossCommand} (boss scope, excluded).
+     * {@code CommandRegistrationCallback}.
      */
     private static void registerCommands() {
         net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, ctx, environment) -> {
@@ -126,6 +154,7 @@ public class Apotheosis implements ModInitializer {
             dev.shadowsoffire.apotheosis.commands.SocketCommand.register(root);
             dev.shadowsoffire.apotheosis.commands.AffixCommand.register(root);
             dev.shadowsoffire.apotheosis.commands.WorldTierCommand.register(root);
+            dev.shadowsoffire.apotheosis.commands.BossCommand.register(root);
 
             com.mojang.brigadier.builder.LiteralArgumentBuilder<net.minecraft.commands.CommandSourceStack> debug = net.minecraft.commands.Commands.literal("debug").requires(net.minecraft.commands.Commands.hasPermission(net.minecraft.commands.Commands.LEVEL_GAMEMASTERS));
             dev.shadowsoffire.apotheosis.commands.DebugWeightCommand.register(debug, ctx);

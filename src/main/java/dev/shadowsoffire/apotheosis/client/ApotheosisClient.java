@@ -31,6 +31,7 @@ public class ApotheosisClient implements ClientModInitializer {
         registerScreens();
         registerTileRenderers();
         AdventureTooltips.register();
+        BossSpawnEffects.register();
 
         // Port note (bugfix): unlike WorldTierComponent (Cardinal Components syncs it to the
         // client automatically on join), vanilla stats are NOT pushed to the client on login —

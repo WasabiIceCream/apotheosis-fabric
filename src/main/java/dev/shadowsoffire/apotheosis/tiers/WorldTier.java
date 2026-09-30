@@ -118,12 +118,13 @@ public enum WorldTier implements StringRepresentable {
      * {@code AffixItemPredicate}, and {@code RarityItemPredicate} are ported and wired up
      * (see their own javadocs), the real check is back in effect.
      * <p>
-     * One deliberate deviation from upstream: the `ascent` tier's kill requirement used
-     * NeoForge's {@code apotheosis:is_invader} predicate (checks for a Gateways-spawned
-     * boss), which needs the {@code mobs}/{@code spawner} package — out of this port's
-     * scope entirely. Swapped for a "kill any monster" requirement
-     * ({@code apotheosis:is_monster}, already ported for the gem-drop loot modifiers) in
-     * the advancement JSON instead of leaving the tier unearnable.
+     * One deviation from upstream: the `ascent` tier's kill requirement uses
+     * {@code apotheosis:is_monster} ("kill any monster") where upstream uses
+     * {@code apotheosis:is_invader}. It was swapped while invaders weren't ported. Since 0.4.0
+     * invaders are ported and {@code apotheosis:is_invader} (plus the port's own
+     * {@code apotheosis:is_elite}, both with optional {@code min_rarity}/{@code id} filters) are
+     * registered, so the advancement JSON can go back to upstream's criterion; that's a
+     * progression decision and hasn't been made yet.
      */
     public static boolean isUnlocked(Player player, WorldTier tier) {
         return ApothMiscUtil.hasAdvancement(player, tier.getUnlockAdvancement());

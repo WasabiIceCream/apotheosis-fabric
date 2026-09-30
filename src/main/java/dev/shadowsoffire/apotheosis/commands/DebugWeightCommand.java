@@ -44,10 +44,6 @@ import net.minecraft.util.StringRepresentable;
 import net.minecraft.util.random.WeightedRandom;
 import net.minecraft.world.item.ItemStack;
 
-/**
- * Port note: drops the {@code elites}/{@code invaders} weight-dump subcommands — those registries
- * (Gateway boss waves) are boss/spawner scoped, out of this port's range.
- */
 public class DebugWeightCommand {
 
     public static final SuggestionProvider<CommandSourceStack> SUGGEST_AFFIX_TYPE = (ctx, builder) -> SharedSuggestionProvider.suggest(Arrays.stream(AffixType.values()).map(StringRepresentable::getSerializedName), builder);
@@ -63,7 +59,9 @@ public class DebugWeightCommand {
                 .then(Commands.argument("type", StringArgumentType.word()).suggests(SUGGEST_AFFIX_TYPE)
                     .then(Commands.argument("rarity", IdentifierArgument.id()).suggests(RarityCommand.SUGGEST_RARITY)
                         .executes(c -> dumpAffixWeights(c, ItemArgument.getItem(c, "item"), StringArgumentType.getString(c, "type"), IdentifierArgument.getId(c, "rarity")))))));
+        weights.then(Commands.literal("elites").executes(c -> dumpWeights(c, dev.shadowsoffire.apotheosis.mobs.registries.EliteRegistry.INSTANCE)));
         weights.then(Commands.literal("gems").executes(c -> dumpWeights(c, GemRegistry.INSTANCE)));
+        weights.then(Commands.literal("invaders").executes(c -> dumpWeights(c, dev.shadowsoffire.apotheosis.mobs.registries.InvaderRegistry.INSTANCE)));
         weights.then(Commands.literal("rarities").executes(c -> dumpWeights(c, RarityRegistry.INSTANCE)));
 
         root.then(weights);

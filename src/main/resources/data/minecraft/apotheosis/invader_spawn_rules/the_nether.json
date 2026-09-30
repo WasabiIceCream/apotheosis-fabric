@@ -1,0 +1,10 @@
+{
+    "spawn_chances": {
+        "haven": 0.0,
+        "frontier": 0.025,
+        "ascent": 0.027,
+        "summit": 0.03,
+        "pinnacle": 0.035
+    },
+    "surface_type": "any"
+}

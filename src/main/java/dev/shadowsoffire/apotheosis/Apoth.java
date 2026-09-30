@@ -63,6 +63,11 @@ public class Apoth {
 
         public static final com.mojang.serialization.MapCodec<dev.shadowsoffire.apotheosis.advancements.predicates.MonsterPredicate> IS_MONSTER = R.custom("is_monster", net.minecraft.core.registries.BuiltInRegistries.ENTITY_SUB_PREDICATE_TYPE, dev.shadowsoffire.apotheosis.advancements.predicates.MonsterPredicate.CODEC);
 
+        public static final com.mojang.serialization.MapCodec<dev.shadowsoffire.apotheosis.advancements.predicates.InvaderPredicate> IS_INVADER = R.custom("is_invader", net.minecraft.core.registries.BuiltInRegistries.ENTITY_SUB_PREDICATE_TYPE, dev.shadowsoffire.apotheosis.advancements.predicates.InvaderPredicate.CODEC);
+
+        // Port addition (not upstream): matches transformed elites, same optional filters as is_invader.
+        public static final com.mojang.serialization.MapCodec<dev.shadowsoffire.apotheosis.advancements.predicates.ElitePredicate> IS_ELITE = R.custom("is_elite", net.minecraft.core.registries.BuiltInRegistries.ENTITY_SUB_PREDICATE_TYPE, dev.shadowsoffire.apotheosis.advancements.predicates.ElitePredicate.CODEC);
+
         // Upstream registers these under the same ids; without them datapacks can't use the entries.
         public static final com.mojang.serialization.MapCodec<dev.shadowsoffire.apotheosis.loot.entry.AffixLootPoolEntry> RANDOM_AFFIX_ITEM = R.custom("random_affix_item", net.minecraft.core.registries.BuiltInRegistries.LOOT_POOL_ENTRY_TYPE, dev.shadowsoffire.apotheosis.loot.entry.AffixLootPoolEntry.CODEC);
 
@@ -151,6 +156,37 @@ public class Apoth {
          * calculation, at the cost of a fixed death-message id instead of borrowing mob_attack's.
          */
         public static final net.minecraft.resources.ResourceKey<net.minecraft.world.damagesource.DamageType> THUNDERSTRUCK = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DAMAGE_TYPE, Apotheosis.loc("thunderstruck"));
+    }
+
+    /**
+     * Port note (NeoForge -> Fabric): upstream's NeoForge {@code AttachmentType}s, re-created with the Fabric Data
+     * Attachment API. Only the mob-feature ones are here; {@code WORLD_TIER} (and the player half of
+     * {@code TIER_AUGMENTS_APPLIED}) live in the Cardinal Components {@code WorldTierComponent}, and
+     * {@code COLD_DAMAGE_TAKEN}/{@code RADIAL_MINING_MODE}/the client-only render attachments are ported elsewhere or not
+     * needed. Read with {@code getAttachedOrElse(type, default)}; the defaults match upstream's.
+     */
+    public static final class Attachments {
+
+        /**
+         * Extra loot tables rolled when the mob dies (invader/elite {@code bonus_loot}). Dropped by {@code MobBossMixin}.
+         */
+        public static final net.fabricmc.fabric.api.attachment.v1.AttachmentType<dev.shadowsoffire.apotheosis.attachments.BonusLootTables> BONUS_LOOT_TABLES = net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry.create(
+            Apotheosis.loc("bonus_loot_tables"), b -> b.persistent(dev.shadowsoffire.apotheosis.attachments.BonusLootTables.CODEC));
+
+        /**
+         * Records if the monster tier augments have been applied to a mob, so the join-level fallback doesn't reapply them.
+         */
+        public static final net.fabricmc.fabric.api.attachment.v1.AttachmentType<Boolean> TIER_AUGMENTS_APPLIED = net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry.create(
+            Apotheosis.loc("tier_augments_applied"), b -> b.persistent(Codec.BOOL));
+
+        /**
+         * The game time at which the player may next trigger a natural invader spawn (0 or any past time: no cooldown).
+         * Set for the triggering player and all same-tier players within the boss announcement range. Kept on death.
+         */
+        public static final net.fabricmc.fabric.api.attachment.v1.AttachmentType<Long> INVADER_COOLDOWN = net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry.create(
+            Apotheosis.loc("invader_cooldown"), b -> b.persistent(Codec.LONG).copyOnDeath());
+
+        private static void bootstrap() {}
     }
 
     public static final class Advancements {
@@ -557,6 +593,7 @@ public class Apoth {
         Triggers.bootstrap();
         DataComponentPredicates.bootstrap();
         CustomAttributes.bootstrap();
+        Attachments.bootstrap();
     }
 
 }
