@@ -137,6 +137,15 @@ public class Apoth {
          * Potions on this tag may not be converted into a Potion Charm via {@code item.PotionCharmItem#isValidPotion}.
          * No entries are pre-populated — same as upstream.
          */
+        /** Blocks placed on top of rogue spawners (one at random). */
+        public static final net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block> ROGUE_SPAWNER_COVERS = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK, Apotheosis.loc("rogue_spawner_covers"));
+
+        /**
+         * Port addition: biomes that don't get the rogue spawner and boss dungeon features. Upstream lists the same biomes
+         * (vanilla oceans and the deep dark) inline in each NeoForge biome modifier; see {@code gen.ApothWorldgen}.
+         */
+        public static final net.minecraft.tags.TagKey<net.minecraft.world.level.biome.Biome> WORLDGEN_BLACKLIST = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BIOME, Apotheosis.loc("worldgen_blacklist"));
+
         public static final net.minecraft.tags.TagKey<net.minecraft.world.item.alchemy.Potion> POTION_CHARM_BLACKLIST = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.POTION, Apotheosis.loc("potion_charm_blacklist"));
     }
 
@@ -187,6 +196,24 @@ public class Apoth {
             Apotheosis.loc("invader_cooldown"), b -> b.persistent(Codec.LONG).copyOnDeath());
 
         private static void bootstrap() {}
+    }
+
+    public static final class Features {
+        public static final Holder<net.minecraft.world.level.levelgen.feature.Feature<?>> BOSS_DUNGEON = R.feature("boss_dungeon", dev.shadowsoffire.apotheosis.gen.BossDungeonFeature::new);
+        public static final Holder<net.minecraft.world.level.levelgen.feature.Feature<?>> BOSS_DUNGEON_2 = R.feature("boss_dungeon_2", dev.shadowsoffire.apotheosis.gen.BossDungeonFeature2::new);
+        public static final Holder<net.minecraft.world.level.levelgen.feature.Feature<?>> ROGUE_SPAWNER = R.feature("rogue_spawner", dev.shadowsoffire.apotheosis.gen.RogueSpawnerFeature::new);
+
+        private static void bootstrap() {}
+    }
+
+    public static final class LootTables {
+        public static final net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> CHEST_VALUABLE = key("chests/chest_valuable");
+        public static final net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> SPAWNER_BRUTAL = key("chests/spawner_brutal");
+        public static final net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> SPAWNER_SWARM = key("chests/spawner_swarm");
+
+        private static net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> key(String path) {
+            return net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.LOOT_TABLE, Apotheosis.loc(path));
+        }
     }
 
     public static final class Advancements {
@@ -458,6 +485,10 @@ public class Apoth {
 
         public static final Holder<net.minecraft.world.level.block.Block> AUGMENTING_TABLE = R.block("augmenting_table", dev.shadowsoffire.apotheosis.affix.augmenting.AugmentingTableBlock::new, p -> p.requiresCorrectToolForDrops().strength(4, 1000F));
 
+        /** "Caged Invader": placed by the boss dungeon features, spawns an invader when a player comes within 8 blocks. No item, as upstream. */
+        public static final Holder<net.minecraft.world.level.block.Block> BOSS_SPAWNER = R.block("boss_spawner", dev.shadowsoffire.apotheosis.mobs.BossSpawnerBlock::new,
+            p -> p.requiresCorrectToolForDrops().strength(-1.0F, 3600000.0F).noLootTable());
+
         private static void bootstrap() {}
     }
 
@@ -482,6 +513,10 @@ public class Apoth {
         public static final net.minecraft.world.level.block.entity.BlockEntityType<dev.shadowsoffire.apotheosis.affix.augmenting.AugmentingTableTile> AUGMENTING_TABLE =
             (net.minecraft.world.level.block.entity.BlockEntityType<dev.shadowsoffire.apotheosis.affix.augmenting.AugmentingTableTile>) (Object)
                 R.blockEntity("augmenting_table", (pos, state) -> new dev.shadowsoffire.apotheosis.affix.augmenting.AugmentingTableTile(pos, state), Blocks.AUGMENTING_TABLE).value();
+
+        public static final net.minecraft.world.level.block.entity.BlockEntityType<dev.shadowsoffire.apotheosis.mobs.BossSpawnerBlock.BossSpawnerTile> BOSS_SPAWNER =
+            (net.minecraft.world.level.block.entity.BlockEntityType<dev.shadowsoffire.apotheosis.mobs.BossSpawnerBlock.BossSpawnerTile>) (Object)
+                R.tickingBlockEntity("boss_spawner", (pos, state) -> new dev.shadowsoffire.apotheosis.mobs.BossSpawnerBlock.BossSpawnerTile(pos, state), dev.shadowsoffire.placebo.block_entity.TickingBlockEntityType.TickSide.SERVER, Blocks.BOSS_SPAWNER).value();
 
         private static void bootstrap() {}
     }
@@ -594,6 +629,7 @@ public class Apoth {
         DataComponentPredicates.bootstrap();
         CustomAttributes.bootstrap();
         Attachments.bootstrap();
+        Features.bootstrap();
     }
 
 }

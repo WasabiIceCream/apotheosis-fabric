@@ -3,7 +3,7 @@
   "id": "apotheosis",
   "version": "${version}",
   "name": "Apotheosis",
-  "description": "Unofficial Fabric port of Apotheosis's Adventure module (affixes, rarities, gems, sockets, invaders, elites and augmented mobs). Original mod by Shadows_of_Fire for NeoForge; this port covers only the Adventure module, not enchanting, spawners, or gateways.",
+  "description": "Unofficial Fabric port of Apotheosis's Adventure module (affixes, rarities, gems, sockets, invaders, elites, augmented mobs, rogue spawners and boss dungeons). Original mod by Shadows_of_Fire for NeoForge; this port covers only the Adventure module, not enchanting, Apothic Spawners, or gateways.",
   "authors": [
     "Shadows_of_Fire (original NeoForge mod)"
   ],
@@ -31,6 +31,7 @@
   "mixins": [
     "apotheosis.mixins.json"
   ],
+  "accessWidener": "apotheosis.accesswidener",
   "depends": {
     "fabricloader": ">=0.19.5",
     "fabric-api": "*",

@@ -17,3 +17,12 @@ accessible field net/minecraft/client/renderer/item/properties/select/SelectItem
 # mobs.types.Invader strips the villager-targeting goal from invaders (upstream: NeoForge access transformer).
 accessible field net/minecraft/world/entity/Mob goalSelector Lnet/minecraft/world/entity/ai/goal/GoalSelector;
 accessible field net/minecraft/world/entity/ai/goal/target/NearestAttackableTargetGoal targetType Ljava/lang/Class;
+
+# util.PresetSpawnerStats and spawner.RogueSpawner configure worldgen spawners (upstream: NeoForge access transformer).
+accessible field net/minecraft/world/level/BaseSpawner spawnPotentials Lnet/minecraft/util/random/WeightedList;
+accessible field net/minecraft/world/level/BaseSpawner minSpawnDelay I
+accessible field net/minecraft/world/level/BaseSpawner maxSpawnDelay I
+accessible field net/minecraft/world/level/BaseSpawner spawnCount I
+accessible field net/minecraft/world/level/BaseSpawner maxNearbyEntities I
+accessible field net/minecraft/world/level/BaseSpawner requiredPlayerRange I
+accessible field net/minecraft/world/level/BaseSpawner spawnRange I

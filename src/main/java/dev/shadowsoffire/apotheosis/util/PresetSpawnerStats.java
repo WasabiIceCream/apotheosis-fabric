@@ -1,0 +1,112 @@
+package dev.shadowsoffire.apotheosis.util;
+
+import java.util.Map;
+import java.util.function.BiConsumer;
+
+import com.google.common.collect.ImmutableMap;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.JavaOps;
+
+import dev.shadowsoffire.apotheosis.Apotheosis;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.BaseSpawner;
+import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
+
+/**
+ * A preset collection of spawner stats, stored as raw values keyed by stat id.
+ * <p>
+ * Port note: upstream applies the stats through Apothic Spawners' stat registry when that mod is installed, and
+ * otherwise applies only the stats that map to vanilla {@link BaseSpawner} fields. Apothic Spawners has no Fabric
+ * port, so only the vanilla path exists here; other stats (such as {@code apothic_spawners:youthful}) are skipped.
+ * The stat ids keep upstream's {@code apothic_spawners} namespace so the data is unchanged. The {@code BaseSpawner}
+ * fields are opened by the access widener (upstream: NeoForge access transformer).
+ */
+public record PresetSpawnerStats(Map<Identifier, Dynamic<?>> stats) {
+
+    public static final String APOTHIC_SPAWNERS = "apothic_spawners";
+
+    public static final Codec<PresetSpawnerStats> CODEC = Codec.unboundedMap(Identifier.CODEC, Codec.PASSTHROUGH)
+        .xmap(PresetSpawnerStats::new, PresetSpawnerStats::stats);
+
+    public static final Identifier MIN_DELAY = as("min_delay");
+    public static final Identifier MAX_DELAY = as("max_delay");
+    public static final Identifier SPAWN_COUNT = as("spawn_count");
+    public static final Identifier MAX_NEARBY_ENTITIES = as("max_nearby_entities");
+    public static final Identifier REQ_PLAYER_RANGE = as("req_player_range");
+    public static final Identifier SPAWN_RANGE = as("spawn_range");
+    public static final Identifier YOUTHFUL = as("youthful");
+
+    private static final Map<Identifier, BiConsumer<BaseSpawner, Integer>> VANILLA_STATS = Map.of(
+        MIN_DELAY, (s, v) -> s.minSpawnDelay = v,
+        MAX_DELAY, (s, v) -> s.maxSpawnDelay = v,
+        SPAWN_COUNT, (s, v) -> s.spawnCount = v,
+        MAX_NEARBY_ENTITIES, (s, v) -> s.maxNearbyEntities = v,
+        REQ_PLAYER_RANGE, (s, v) -> s.requiredPlayerRange = v,
+        SPAWN_RANGE, (s, v) -> s.spawnRange = v);
+
+    private static final Map<Identifier, Dynamic<?>> DEFAULT_STATS = builder()
+        .stat(MIN_DELAY, 200)
+        .stat(MAX_DELAY, 800)
+        .stat(SPAWN_COUNT, 4)
+        .stat(MAX_NEARBY_ENTITIES, 6)
+        .stat(SPAWN_RANGE, 4)
+        .stat(REQ_PLAYER_RANGE, 16)
+        .build().stats();
+
+    public PresetSpawnerStats() {
+        this(DEFAULT_STATS);
+    }
+
+    public void apply(SpawnerBlockEntity entity) {
+        this.applyVanilla(entity.getSpawner());
+    }
+
+    private void applyVanilla(BaseSpawner spawner) {
+        for (Map.Entry<Identifier, Dynamic<?>> entry : this.stats.entrySet()) {
+            BiConsumer<BaseSpawner, Integer> setter = VANILLA_STATS.get(entry.getKey());
+            if (setter == null) {
+                Apotheosis.LOGGER.trace("Skipping spawner stat {} - Apothic Spawners is not installed.", entry.getKey());
+                continue;
+            }
+            entry.getValue().asNumber().result().ifPresentOrElse(
+                n -> setter.accept(spawner, n.intValue()),
+                () -> Apotheosis.LOGGER.error("Ignoring non-numeric value for spawner stat {}.", entry.getKey()));
+        }
+    }
+
+    private static Identifier as(String path) {
+        return Identifier.fromNamespaceAndPath(APOTHIC_SPAWNERS, path);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        protected final ImmutableMap.Builder<Identifier, Dynamic<?>> stats = ImmutableMap.builder();
+
+        public Builder stat(Identifier stat, int value) {
+            return this.statInternal(stat, value);
+        }
+
+        public Builder stat(Identifier stat, float value) {
+            return this.statInternal(stat, value);
+        }
+
+        public Builder stat(Identifier stat, boolean value) {
+            return this.statInternal(stat, value);
+        }
+
+        private Builder statInternal(Identifier stat, Object value) {
+            this.stats.put(stat, new Dynamic<>(JavaOps.INSTANCE, value));
+            return this;
+        }
+
+        public PresetSpawnerStats build() {
+            return new PresetSpawnerStats(this.stats.build());
+        }
+    }
+
+}

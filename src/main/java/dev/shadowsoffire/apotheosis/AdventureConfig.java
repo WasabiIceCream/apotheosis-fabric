@@ -1,7 +1,11 @@
 package dev.shadowsoffire.apotheosis;
 
+import java.util.List;
+
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.WorldGenLevel;
 
 /**
  * Port note: upstream's {@code AdventureConfig} is a full Placebo {@code Configuration}-backed
@@ -54,5 +58,19 @@ public class AdventureConfig {
 
     /** If true, bosses will glow when they spawn. */
     public static boolean bossGlowOnSpawn = true;
+
+    // Generation (upstream's "worldgen" and "spawners" config categories; same defaults, plain constants)
+
+    /**
+     * The dimensions that Apotheosis's worldgen (rogue spawners, boss dungeons) will generate in. Upstream default: overworld only.
+     */
+    public static final List<Identifier> DIM_WHITELIST = List.of(Identifier.withDefaultNamespace("overworld"));
+
+    /** The chance that a Rogue Spawner has a "valuable" chest instead of a standard one. 0 = 0%, 1 = 100%. */
+    public static float spawnerValueChance = 0.11F;
+
+    public static boolean canGenerateIn(WorldGenLevel world) {
+        return DIM_WHITELIST.contains(world.getLevel().dimension().identifier());
+    }
 
 }

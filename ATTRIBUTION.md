@@ -37,6 +37,9 @@ as it stood at that time:
   to match this port's item IDs; `godforged_pearl.png` also carries
   upstream's `mythic_material.png.mcmeta` (animated texture)
 - `textures/item/sigils/{enhancement,rebirth,socketing,unnaming,withdrawal}.png`
+- `textures/block/{boss_spawner,boss_spawner_top}.png` (added 0.4.1, from upstream's `textures/blocks/`;
+  byte-identical to the current upstream files, checked by SHA-256 against `f12308b`), plus the
+  `boss_spawner` blockstate and block model (model texture paths moved to `block/`)
 - `blockstates/{gem_cutting_table,reforging_table,simple_reforging_table,salvaging_table,augmenting_table}.json`
 - `models/block/{gem_cutting_table,reforging_table,simple_reforging_table,salvaging_table,augmenting_table}.json`
   (the `gem_cutting_table` one is upstream's real Blockbench model, not

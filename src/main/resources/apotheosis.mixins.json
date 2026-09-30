@@ -16,7 +16,8 @@
     "MobBossMixin",
     "EntityInvoker",
     "ServerPlayerCreativeFlightMixin",
-    "AnvilGemSmashingMixin"
+    "AnvilGemSmashingMixin",
+    "BaseSpawnerAccessor"
   ],
   "client": [
     "ClientAdvancementsAccessor"

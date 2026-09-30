@@ -1,0 +1,7 @@
+{
+    "parent": "block/cube_column",
+    "textures": {
+        "end": "apotheosis:block/boss_spawner_top",
+        "side": "apotheosis:block/boss_spawner"
+    }
+}

@@ -7,10 +7,10 @@ Apotheosis normally ships as six interconnected mods covering rarity/loot
 tiers, dynamic affixes, gem sockets, custom enchanting, spawners, and
 boss-summoning gateways, all NeoForge-only. This port covers just the
 **Adventure module**: rarities, affixes, gem sockets and cutting, the
-loot injection that lets mobs/chests drop affixed gear, and (since 0.4.0)
-the mob features: invaders, elites and augmented monsters. Enchanting,
-spawners, gateways and the boss dungeon/rogue spawner worldgen are out of
-scope.
+loot injection that lets mobs/chests drop affixed gear, (since 0.4.0)
+the mob features: invaders, elites and augmented monsters, and (since 0.4.1)
+the rogue spawner and boss dungeon worldgen. Enchanting, Apothic Spawners,
+gateways and the tower structures are out of scope.
 
 ## What it adds
 
@@ -28,6 +28,11 @@ scope.
   Craig) that ordinary spawns can turn into
 - Monsters that sometimes spawn wearing a random affixed item, more often at
   higher World Tiers
+- Rogue spawners underground: a preset monster spawner (brutal zombies, husks
+  and pillagers, or fast spider/silverfish/baby zombie swarms) over a loot
+  chest, sometimes a valuable one with affixed gear and gems
+- Boss dungeons: small stone-brick rooms with dungeon chests and a Caged
+  Invader that releases an invader when a player comes within 8 blocks
 - `/apoth spawn_boss` and `/apoth spawn_elite` for operators, and the
   `apotheosis:is_invader` / `apotheosis:is_elite` entity predicates for
   advancements (see `DEVLOG.md` for the JSON)

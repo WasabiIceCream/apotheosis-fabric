@@ -1391,3 +1391,141 @@ Boot: no new ERRORs (only the known moonlight x2 / tapir lines). Counts:
 - Not tested (needs a player online): a natural invader replacing a spawn, the
   announcement/beam/sound on a client, random affix items and elites rolling
   on natural spawns, the cooldown.
+
+## 0.4.1 (2026-09-29): rogue spawners and boss dungeons (worldgen)
+
+Ported upstream's worldgen (26.1 branch): rogue spawners and both boss dungeon
+variants. They share one setup upstream (`SuccessChanceFeatureConfig`, the
+`apotheosis:blacklist` biome modifier, `AdventureConfig.canGenerateIn`), and the
+boss dungeons only needed the Caged Invader block on top of the invaders ported
+in 0.4.0, so both are in.
+
+### What was ported
+
+- `spawner/RogueSpawner`, `spawner/RogueSpawnerRegistry` (Placebo weighted
+  dynamic registry `apotheosis:rogue_spawners`), `util/PresetSpawnerStats`.
+- `gen/SuccessChanceFeatureConfig`, `gen/RogueSpawnerFeature`,
+  `gen/BossDungeonFeature`, `gen/BossDungeonFeature2`; features registered as
+  `apotheosis:rogue_spawner`, `boss_dungeon`, `boss_dungeon_2`.
+- `mobs/BossSpawnerBlock` + `BossSpawnerTile` ("Caged Invader", no item, no
+  drops, unbreakable, as upstream): every 40 ticks it looks for a non-creative
+  player within 8 blocks, removes itself and spawns a random invader for that
+  player's World Tier (or the saved `boss_item`), targeting the player.
+- `AdventureConfig`: `DIM_WHITELIST` (overworld) and `spawnerValueChance`
+  (0.11), upstream defaults as constants; `canGenerateIn`.
+- `Apotheosis.DEBUG_WORLDGEN` (`APOTH_DEBUG_WORLDGEN=on`) + `debugLog`, as
+  upstream (logs at INFO).
+- Data, upstream values and paths: 9 `rogue_spawners` (brutal zombie/husk/
+  pillager/rotating, swarm spider/cave spider/fast cave spider/silverfish/baby
+  zombie), `loot_table/chests/{chest_valuable,spawner_brutal,spawner_swarm}`,
+  3 configured and 6 placed features (`rogue_spawner` 65/chunk y 10..top and
+  `rogue_spawner_deep` 85/chunk bottom+6..-1, both at 1% success;
+  `boss_dungeon` and `boss_dungeon_2` 6/chunk y 0..top and 8/chunk deep, 100%
+  success but strict room checks), `tags/block/rogue_spawner_covers`,
+  `structure/boss_1.nbt` (variant 2's room), the boss spawner blockstate,
+  model and textures (moved to `textures/block/`, `render_type` dropped:
+  26.1 picks the layer from the texture).
+- Not ported: the tower structures (`towers` structure set,
+  `ItemFrameGemsProcessor`, `tome_tower` loot): a separate structure system,
+  not part of this feature setup. Apothic Spawners compat (no Fabric port).
+
+### NeoForge -> Fabric decisions
+
+- **Biome modifiers.** Upstream's six `apotheosis:blacklist` biome modifiers
+  add each placed feature to `UNDERGROUND_STRUCTURES` in every biome except
+  the vanilla oceans and the deep dark. `gen/ApothWorldgen` does the same with
+  Fabric's `BiomeModifications.addFeature`, the blacklist moved into the biome
+  tag `#apotheosis:worldgen_blacklist` (same 10 biomes) so a datapack can still
+  edit it. As upstream, the features go into every other biome of every
+  dimension and `canGenerateIn` limits them to the overworld when they place.
+- **Spawner fields.** `BaseSpawner`'s private stat fields and `spawnPotentials`
+  are opened by the access widener; `setNextSpawnData` goes through a mixin
+  invoker (`BaseSpawnerAccessor`, like upstream) so the block entity's
+  override still runs.
+- **Access widener was never loaded.** `fabric.mod.json` had no
+  `accessWidener` entry, so none of the port's widenings applied at runtime
+  (they only affected compilation). Found when the first rogue spawner threw
+  `IllegalAccessError` on `BaseSpawner.maxSpawnDelay`. Now declared. This also
+  makes the older entries real at runtime: `LivingEntity.attackStrengthTicker`
+  (Cleaving), `AbstractArrow.baseDamage` (Spectral Shot, Bloody Arrow),
+  `Mob.goalSelector` / `NearestAttackableTargetGoal.targetType` (invaders drop
+  their villager-attack goal), and the client item-linking fields; each of
+  those would have thrown `IllegalAccessError` when first reached before.
+  (`placebo-fabric` has the same gap: `placebo.accesswidener` isn't declared
+  in its `fabric.mod.json`; not fixed here.)
+- **Feature exceptions.** That `IllegalAccessError` escaped the feature, the
+  chunk's generation future never completed, the server thread waited on it
+  in `forceload add` and the watchdog killed the server after 60 s.
+  `RogueSpawnerFeature` now catches an exception from a preset's `place`, logs
+  it and skips that spawner (port addition; rogue spawners are data-driven).
+- `BossDungeonFeature2` reads the structure template manager from the
+  generating level's server (upstream: NeoForge `ServerLifecycleHooks`) and
+  skips the room with an error if `apotheosis:boss_1` is missing.
+- `PresetSpawnerStats` only has upstream's vanilla path: min/max delay, spawn
+  count, max nearby entities, required player range and spawn range. Other
+  stats (`apothic_spawners:youthful`) are skipped, as upstream does without
+  Apothic Spawners.
+
+### Interaction with the mob features (kept as upstream)
+
+- Every rogue spawner's spawn data carries extra NBT, so vanilla
+  `BaseSpawner` doesn't call `finalizeSpawn` for its mobs. NeoForge still fires
+  `FinalizeSpawnEvent` there (checked in NeoForge 21.1's
+  `EventHooks.finalizeMobSpawnSpawner`: event always posted, only
+  `finalizeSpawn` itself skipped), with spawn reason `SPAWNER`. Upstream's
+  handler then does nothing for these mobs besides tier augments: invaders
+  only replace `NATURAL`/`CHUNK_GENERATION`, `random_affix_items` excludes
+  `spawner`/`trial_spawner`, and the three elites that could match exclude
+  `spawner` (Craig only applies to goats). Here `MobFinalizeSpawnMixin` isn't
+  reached for them, and the monster tier augments come from the existing
+  join-level fallback (nearest player's tier, first load with a player
+  online; a spawner only runs with a player in range). Same result, so no
+  spawner hook was added.
+- Caged Invader bosses come from `Invader#createBoss` (spawn reason `EVENT`),
+  not a natural spawn, so no invader cooldown or announcement, as upstream.
+  Supporting entities aren't spawned (upstream TODO, same as `/apoth
+  spawn_boss`).
+
+### Data deviations from upstream
+
+- Rogue spawner mob NBT used pre-1.21.2 attribute ids
+  (`minecraft:generic.movement_speed`, `generic.attack_damage`,
+  `generic.max_health`), which 26.1 drops: the "brutal" mobs would have been
+  plain mobs (and `Health: 30` clamped to 20). Now `minecraft:` ids.
+- The brutal pillager's `HandItems` (pre-1.21.5) is now
+  `equipment: {mainhand: crossbow}`; spawner mobs with custom NBT skip
+  `finalizeSpawn`, so without it the pillager had no crossbow.
+- `swarm/baby_zombie` adds `IsBaby: true`: upstream makes it a baby through
+  Apothic Spawners' `youthful` stat, which doesn't exist here.
+- `chest_valuable` loses its three Apothic Attributes potion entries
+  (Knowledge, Strong Resistance, Extra Long Flying): our Apothic Attributes
+  port has no potions and the unknown ids made the whole table fail to load.
+
+### Tested (local server, no player online)
+
+Boot with no new ERRORs (only moonlight x2 / tapir x2); `Registered 9
+apotheosis:rogue_spawners`; other counts unchanged (affixes 94, gems 26,
+invaders 23, elites 4). With `APOTH_DEBUG_WORLDGEN=on`, force-loading fresh
+chunks at x/z 29700..29855 (region r.58.58, never generated before) placed
+19 boss dungeons (15 variant 1, 4 variant 2) and 6 rogue spawners (brutal
+zombie, husk, pillager; swarm baby zombie, spider, cave spider). A region scan
+after `save-all flush`: 220 chunks at or past the features step in r.58.58,
+holding 8 Caged Invaders and 6 rogue spawners (about 1 boss dungeon per 27
+chunks, 1 rogue spawner per 37). No vanilla dungeon spawners in that sample.
+
+- `data get block 29768 -30 29759`: `minecraft:mob_spawner`, brutal zombie
+  spawn data with `minecraft:movement_speed`/`attack_damage`/`max_health`
+  modifiers, `MinSpawnDelay 200`, `MaxSpawnDelay 400`, `SpawnCount 3`,
+  `MaxNearbyEntities 6`, `RequiredPlayerRange 12`, `SpawnRange 5`; chest below
+  with `LootTable: apotheosis:chests/spawner_brutal`; the block above is in
+  `#apotheosis:rogue_spawner_covers`.
+- `29779 -42 29808`: brutal pillager with the crossbow `equipment`, chest
+  `spawner_brutal`. `29750 -53 29811`: swarm baby zombie (`IsBaby: 1b`, Speed
+  II), chest `spawner_swarm`.
+- Summoning a pillager and zombie with exactly that stored NBT: crossbow
+  equipped, `projectile_damage` 1.3 (1.0 x1.3), max health modifiers applied
+  (Dynamic Difficulty scales further), zombie is a baby.
+- `29732 -18 29761`, `29836 -1 29775`, `29854 -11 29672`: `apotheosis:boss_spawner`
+  (`boss_item: "empty:empty"`, so a random invader).
+- Not tested (needs a player): a Caged Invader releasing its boss, a rogue
+  spawner actually spawning, the block's look on a client.

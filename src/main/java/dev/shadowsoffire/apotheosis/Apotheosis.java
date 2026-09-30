@@ -18,8 +18,9 @@ import net.minecraft.server.MinecraftServer;
  *
  * Original mod: https://github.com/Shadows-of-Fire/Apotheosis (NeoForge only).
  * This port covers affixes, rarities, gems, sockets, and (since 0.4.0) the
- * mob features: invaders, elites and augmentations. Not enchanting, spawners,
- * gateways, or the boss dungeon/rogue spawner worldgen. See
+ * mob features: invaders, elites and augmentations, and (since 0.4.1) the rogue
+ * spawner and boss dungeon worldgen. Not enchanting, Apothic Spawners or
+ * gateways. See
  * mod-dev/apotheosis-fabric/README.md for scope and porting notes.
  */
 public class Apotheosis implements ModInitializer {
@@ -32,6 +33,12 @@ public class Apotheosis implements ModInitializer {
      * (invaders, augmentations, elites). Port note: logged at INFO here (upstream: DEBUG), since the flag is already opt-in.
      */
     public static final boolean DEBUG_MOBS = "on".equalsIgnoreCase(System.getenv("APOTH_DEBUG_MOBS"));
+
+    /**
+     * Set the environment variable {@code APOTH_DEBUG_WORLDGEN=on} to log the position of every rogue spawner and boss dungeon
+     * as it generates (same flag as upstream).
+     */
+    public static final boolean DEBUG_WORLDGEN = "on".equalsIgnoreCase(System.getenv("APOTH_DEBUG_WORLDGEN"));
 
     /** Whether the (currently unported, TODO-stubbed) Game Stages compat should be active. */
     public static final boolean STAGES_LOADED = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("gamestages");
@@ -70,6 +77,7 @@ public class Apotheosis implements ModInitializer {
         dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.WorldTierPayload.Provider());
         dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.BossSpawnPayload.Provider());
         registerMobHooks();
+        dev.shadowsoffire.apotheosis.gen.ApothWorldgen.init();
         registerCommands();
         LOGGER.info("Apotheosis (Fabric Adventure port) initializing");
     }
@@ -95,6 +103,7 @@ public class Apotheosis implements ModInitializer {
         dev.shadowsoffire.apotheosis.mobs.registries.EliteRegistry.INSTANCE.registerToBus();
         dev.shadowsoffire.apotheosis.mobs.registries.AugmentRegistry.INSTANCE.registerToBus();
         dev.shadowsoffire.apotheosis.mobs.registries.InvaderSpawnRulesRegistry.INSTANCE.registerToBus();
+        dev.shadowsoffire.apotheosis.spawner.RogueSpawnerRegistry.INSTANCE.registerToBus();
         dev.shadowsoffire.apotheosis.loot.modifiers.GlobalLootModifierRegistry.INSTANCE.registerToBus();
     }
 
@@ -202,4 +211,11 @@ public class Apotheosis implements ModInitializer {
     public static MutableComponent sysMessageHeader() {
         return Component.translatable("[%s] ", Component.literal("Apoth").withStyle(ChatFormatting.GOLD));
     }
+
+    public static void debugLog(net.minecraft.core.BlockPos pos, String name) {
+        if (DEBUG_WORLDGEN) {
+            LOGGER.info("Generated a {} at {} {} {}", name, pos.getX(), pos.getY(), pos.getZ());
+        }
+    }
+
 }
