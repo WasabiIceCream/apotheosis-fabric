@@ -81,6 +81,11 @@
                     "attribute": "minecraft:scale",
                     "operation": "add_multiplied_total",
                     "value": 1.25
+                },
+                {
+                    "attribute": "apothic_attributes:crit_chance",
+                    "operation": "add_value",
+                    "value": 0.05
                 }
             ],
             "effects": [
@@ -140,6 +145,21 @@
                     "attribute": "minecraft:scale",
                     "operation": "add_multiplied_total",
                     "value": 1.25
+                },
+                {
+                    "attribute": "apothic_attributes:crit_chance",
+                    "operation": "add_value",
+                    "value": 0.1
+                },
+                {
+                    "attribute": "apothic_attributes:life_steal",
+                    "operation": "add_value",
+                    "value": 0.05
+                },
+                {
+                    "attribute": "apothic_attributes:armor_pierce",
+                    "operation": "add_value",
+                    "value": 2.0
                 }
             ],
             "effects": [
@@ -199,6 +219,26 @@
                     "attribute": "minecraft:scale",
                     "operation": "add_multiplied_total",
                     "value": 1.25
+                },
+                {
+                    "attribute": "apothic_attributes:crit_chance",
+                    "operation": "add_value",
+                    "value": 0.15
+                },
+                {
+                    "attribute": "apothic_attributes:crit_damage",
+                    "operation": "add_value",
+                    "value": 0.25
+                },
+                {
+                    "attribute": "apothic_attributes:life_steal",
+                    "operation": "add_value",
+                    "value": 0.1
+                },
+                {
+                    "attribute": "apothic_attributes:armor_pierce",
+                    "operation": "add_value",
+                    "value": 4.0
                 }
             ],
             "effects": [
