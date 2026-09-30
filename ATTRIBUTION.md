@@ -37,6 +37,9 @@ as it stood at that time:
   to match this port's item IDs; `godforged_pearl.png` also carries
   upstream's `mythic_material.png.mcmeta` (animated texture)
 - `textures/item/sigils/{enhancement,rebirth,socketing,unnaming,withdrawal}.png`
+- `sounds/reforge.ogg` (added 0.4.2, git blob `4fb7acf`, identical at `f12308b`): played as `reforge_item_reforged`.
+  Upstream's later sounds (invader, malice, reforge placed) postdate the split and are not shipped; `sounds.json`
+  maps them to vanilla sound events instead.
 - `textures/block/{boss_spawner,boss_spawner_top}.png` (added 0.4.1, from upstream's `textures/blocks/`;
   byte-identical to the current upstream files, checked by SHA-256 against `f12308b`), plus the
   `boss_spawner` blockstate and block model (model texture paths moved to `block/`)

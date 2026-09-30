@@ -1,0 +1,68 @@
+{
+  "reforge_item_placed": {
+    "subtitle": "apotheosis.subtitle.reforge_item_placed",
+    "sounds": [
+      {
+        "name": "minecraft:block.smithing_table.use",
+        "type": "event",
+        "volume": 0.6
+      }
+    ]
+  },
+  "reforge_item_reforged": {
+    "subtitle": "apotheosis.subtitle.reforge_item_reforged",
+    "sounds": [
+      "apotheosis:reforge"
+    ]
+  },
+  "malice": {
+    "subtitle": "apotheosis.subtitle.malice",
+    "sounds": [
+      {
+        "name": "minecraft:entity.wither.ambient",
+        "type": "event",
+        "volume": 0.8
+      }
+    ]
+  },
+  "invader_uncommon": {
+    "subtitle": "apotheosis.subtitle.invader_uncommon",
+    "sounds": [
+      {
+        "name": "minecraft:event.raid.horn",
+        "type": "event",
+        "pitch": 0.8
+      }
+    ]
+  },
+  "invader_rare": {
+    "subtitle": "apotheosis.subtitle.invader_rare",
+    "sounds": [
+      {
+        "name": "minecraft:event.raid.horn",
+        "type": "event",
+        "pitch": 0.95
+      }
+    ]
+  },
+  "invader_epic": {
+    "subtitle": "apotheosis.subtitle.invader_epic",
+    "sounds": [
+      {
+        "name": "minecraft:event.raid.horn",
+        "type": "event",
+        "pitch": 1.1
+      }
+    ]
+  },
+  "invader_mythic": {
+    "subtitle": "apotheosis.subtitle.invader_mythic",
+    "sounds": [
+      {
+        "name": "minecraft:event.raid.horn",
+        "type": "event",
+        "pitch": 1.25
+      }
+    ]
+  }
+}

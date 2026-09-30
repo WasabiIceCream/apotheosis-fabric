@@ -1535,3 +1535,7 @@ chunks, 1 rogue spawner per 37). No vanilla dungeon spawners in that sample.
 In-game test: Multiplayer Spawners makes spawners unbreakable (mining only disables them), and vanilla won't open a chest
 with a solid block on top, so a rogue spawner's chest could never be opened; breaking the chest lost the loot (Slash
 Loot keeps per-player contents). `ChestUnderSpawnerMixin` lets `ChestBlock.isBlockedChestByBlock` ignore a spawner above.
+Also in 0.4.2: the custom sounds had no `sounds.json` or audio, so Invader arrivals, reforging and the Sigil of Malice
+were silent (found in game). Upstream's invader/malice/reforge-placed sounds postdate the 2025 asset license split (All
+Rights Reserved), so `sounds.json` maps them to vanilla events: raid horn for invaders (pitch 0.8/0.95/1.1/1.25 by rarity),
+smithing table for placing, Wither ambient for malice; reforging plays upstream's pre-split MIT `reforge.ogg`.
