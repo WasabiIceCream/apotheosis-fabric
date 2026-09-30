@@ -1539,3 +1539,90 @@ Also in 0.4.2: the custom sounds had no `sounds.json` or audio, so Invader arriv
 were silent (found in game). Upstream's invader/malice/reforge-placed sounds postdate the 2025 asset license split (All
 Rights Reserved), so `sounds.json` maps them to vanilla events: raid horn for invaders (pitch 0.8/0.95/1.1/1.25 by rarity),
 smithing table for placing, Wither ambient for malice; reforging plays upstream's pre-split MIT `reforge.ogg`.
+
+## 0.4.3 (2026-09-30): projectile affixes, invader combat stats, spell weapons
+
+### Projectile hooks (bug since the first port)
+
+Nothing called `AffixHelper.copyToProjectile` or the affix/gem `onProjectileFired`/`onProjectileImpact` hooks
+(upstream: `AdventureEvents#fireProjectile` on `EntityJoinLevelEvent`, `#impact` on `ProjectileImpactEvent`), so every
+arrow affix was inert: the arrow mob effects (Ensnaring, Ivy-Laced, Grievous, ...), Spectral Shot, Magical, and gem
+bonuses such as Bloody Arrow and on-impact mob effects. Now `affix/ProjectileHooks`:
+
+- `ServerLevelProjectileMixin` (`ServerLevel.addFreshEntity` HEAD, freshly added projectiles only, priority 900 so it
+  runs before Apothic Attributes' arrow-damage hook at the same point): for a projectile with a living owner and without
+  `apoth.generated`, the weapon is `AbstractArrow#getWeaponItem()` when set (vanilla bows/crossbows, skeletons, modded
+  bows that pass the weapon), else upstream's choice: the owner's item in use (Too Many Bows fires in `releaseUsing`, while
+  the bow is still the use item), else the main hand if it's a ranged weapon (or a spell weapon, below), else the off hand.
+  Runs the gem and affix fire hooks and copies the weapon onto the projectile.
+- `ProjectileImpactMixin` (`Projectile.onHit` HEAD): vanilla reaches it only for non-deflected hits (Apothic's dodge
+  cancels `hitTargetOrDeflectSelf` before it), Spell Engine's spell projectiles call it directly, and every vanilla
+  override calls super. Runs the source weapon's gem and affix impact hooks.
+- Magical: upstream adds `c:is_magic` and `bypasses_armor` to the damage source via NeoForge's `DamageSourceExtension`.
+  The fire hook sets `apoth.magical` on the arrow and `DamageSourceMagicalMixin` answers those two tag checks for damage
+  whose direct entity is such an arrow.
+
+Tested without a player (arrows summoned with `Owner` and a `weapon` item, since mobs don't tick their AI with nobody
+online; `pause-when-empty-seconds` set to 0 for the test and restored): the arrow's persistent data holds
+`apoth.source_weapon` (and `apoth.magical` for a Magical bow); an Ensnaring + Ivy-Laced bow's arrow gave an iron golem
+Slowness II and Poison III; against a zombie in full netherite a Magical arrow did 12.5 damage where the same arrow
+without Magical did 1.7-2.3. Not tested in game: a player's bow/crossbow, Spectral Shot's extra arrow, Bloody Arrow, a
+Too Many Bows bow, spell projectiles.
+
+### Invader combat stats (Gameoverse data change, not upstream)
+
+`tools/invader_combat_stats.py` adds Apothic Attributes combat stats to every invader's
+`stats.<rarity>.attribute_modifiers` (all `add_value`; idempotent, `--check` to verify). Values are kept low because
+players here start with 3 hearts:
+
+| Rarity | crit_chance | crit_damage | life_steal | armor_pierce |
+|---|---|---|---|---|
+| uncommon | - | - | - | - |
+| rare | +0.05 | - | - | - |
+| epic | +0.10 | - | +0.05 | +2 |
+| mythic | +0.15 | +0.25 | +0.10 | +4 |
+
+Apothic's crit chance and life steal are fractions (0.05 = 5%), crit damage a multiplier over base 1.5, armor pierce
+flat armor. Verified with `/apoth spawn_boss ... overworld/zombie mythic|epic` and `/attribute`. Elites unchanged.
+
+### Spell weapons (Gameoverse addition)
+
+Staves and wands had attack damage 2-4, so they were `melee_weapon` and rolled melee affixes.
+
+- New loot category `apotheosis:spell_weapon` (main hand, priority 1900, before melee weapons at 2000):
+  `util/SpellWeapons#isSpellWeapon`, not a sword or axe and its main hand `add_value` power in one Spell Power school
+  (`spell_power:*` other than generic/critical_*/haste/resistance) is at least its attack damage. No compile or runtime
+  dependency on Spell Power. On this server it matches the 31 RPG Series staves and wands (Wizards, Paladins, Arsenal),
+  logged at server start as `Spell weapons (31): [...]`.
+- Gems: `Gem` maps `spell_weapon` to the gem's `melee_weapon` bonus unless a bonus names `spell_weapon` itself (staves
+  had the melee bonuses before). Covers datapack gems (Jewelry gems) without edits.
+- Projectile hooks also read a spell weapon in the main hand, so projectile mob-effect affixes apply to spell projectiles.
+- New affix type `apotheosis:optional_attribute`: an attribute affix whose attribute may be missing (it then never
+  rolls instead of failing to load) and, with `require_item_attribute`, only rolls on items that already have the
+  attribute.
+- `tools/spell_affixes.py` writes `affixes/spell/**`, adds `spell_weapon` to Lucky and Experienced, and merges the lang
+  entries (the lang file is hand-formatted, so it edits lines). Values follow Spell Power's scaling: school power has base
+  1 plus the weapon's 3-8, and `add_multiplied_base` multiplies base plus flat adds; haste/crit use base 100 (so 0.05 is
+  about 5 points). RPG Series robes give +20-35% school power and 2-5% haste/crit per piece; Jewelry gems 2.4-21.6%.
+
+| Affix | Type | Attribute (`add_multiplied_base`) | common | uncommon | rare | epic | mythic |
+|---|---|---|---|---|---|---|---|
+| Runic / Blazing / Frigid / Hallowed / Stormcalled / Soulbound | stat, weight 60, item's own school only, one per item | `spell_power:arcane/fire/frost/healing/lightning/soul` | 8-12% | 10-15% | 12-20% | 16-25% | 20-30% |
+| Quickened | stat | `spell_power:haste` | 2-4 | 3-5 | 4-6 | 5-8 | 6-10 |
+| Focused | stat | `spell_power:critical_chance` | 2-4 | 3-5 | 4-6 | 5-8 | 6-10 |
+| Archmage's | ability | `spell_power:generic` (all schools' flat power) | - | - | - | 8-12% | 12-18% |
+| Devastating | ability | `spell_power:critical_damage` | - | - | - | 10-15 | 15-20 |
+| Lucky, Experienced | stat | existing affixes, now also on spell weapons | | | | | |
+| Binding / Hexing | basic effect | slowness / weakness on projectile hit (Ensnaring's numbers) | - | yes | yes | yes | yes |
+| Necrotic | basic effect | wither on projectile hit (Blighted's numbers) | - | - | - | yes | yes |
+| Flowing | basic effect | speed to the caster on projectile hit (Fleeting's numbers) | - | yes | yes | yes | yes |
+
+Every rarity rule finds enough candidates (mythic: 4 stat, 2 basic effect, 1 ability). The effect affixes only fire
+for spell projectiles (and thrown/shot projectiles), not beam, area or instant spells, and not melee hits with the staff.
+
+Tested: boot clean, `Registered 108 apotheosis:affixes` (was 94), and `execute as <armor stand> run apoth reforge`
+(the reforge and loot_category commands now accept any living entity and report back) on a fire staff, frost wand,
+holy wand, Wizard Staff and Arsenal heal staff: category `spell_weapon`, only the item's school rolls (Wizard Staff gets
+exactly one of its three), iron sword stays melee, bow stays bow. A mythic fire staff took an armor stand's Fire Spell
+Power from 7 to 8.61 (+23%) and Spell Critical Chance from 105 to 113. Not tested in game: tooltips, casting with an
+affixed staff, the effect affixes on a spell projectile, gems socketed into a staff.

@@ -33,6 +33,9 @@ gateways and the tower structures are out of scope.
   chest, sometimes a valuable one with affixed gear and gems
 - Boss dungeons: small stone-brick rooms with dungeon chests and a Caged
   Invader that releases an invader when a player comes within 8 blocks
+- Server additions (Gameoverse): a Spell Weapon category for Spell Engine staves and wands with school-matched spell
+  power, spell haste, crit and projectile-effect affixes, and invaders that crit, life steal and pierce armor at higher
+  rarities (see `DEVLOG.md` 0.4.3)
 - `/apoth spawn_boss` and `/apoth spawn_elite` for operators, and the
   `apotheosis:is_invader` / `apotheosis:is_elite` entity predicates for
   advancements (see `DEVLOG.md` for the JSON)

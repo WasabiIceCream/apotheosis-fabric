@@ -15,7 +15,7 @@
         ],
         "weights": {
             "quality": 0.1,
-            "weight": 25
+            "weight": 60
         }
     },
     "operation": "add_multiplied_base",

@@ -46,7 +46,7 @@ files = {}
 lang = {}
 
 
-def attr_affix(path, attribute, affix_type, table, name, suffix, require=False, exclusive=()):
+def attr_affix(path, attribute, affix_type, table, name, suffix, require=False, exclusive=(), weight=25):
     d = {
         "type": "apotheosis:optional_attribute",
         "attribute": attribute,
@@ -54,7 +54,7 @@ def attr_affix(path, attribute, affix_type, table, name, suffix, require=False, 
         "definition": {
             "affix_type": affix_type,
             "exclusive_set": sorted(exclusive),
-            "weights": {"quality": 0.1, "weight": 25},
+            "weights": {"quality": 0.1, "weight": weight},
         },
         "operation": "add_multiplied_base",
         "values": values(table),
@@ -70,7 +70,9 @@ school_ids = {s: f"spell/attribute/{s}" for s in SCHOOLS}
 for school, (name, suffix) in SCHOOLS.items():
     # One school affix per item: a multi-school staff (the Wizard Staff) still rolls only one.
     others = {f"apotheosis:{p}" for s, p in school_ids.items() if s != school}
-    attr_affix(school_ids[school], f"spell_power:{school}", "stat", SCHOOL_POWER, name, suffix, require=True, exclusive=others)
+    # Weight 60 (others 25): the school's power is the staff's main stat, so it should nearly always roll.
+    attr_affix(school_ids[school], f"spell_power:{school}", "stat", SCHOOL_POWER, name, suffix, require=True, exclusive=others,
+               weight=60)
 
 attr_affix("spell/attribute/quickened", "spell_power:haste", "stat", SECONDARY, "Quickened", "of Haste")
 attr_affix("spell/attribute/focused", "spell_power:critical_chance", "stat", SECONDARY, "Focused", "of Precision")
