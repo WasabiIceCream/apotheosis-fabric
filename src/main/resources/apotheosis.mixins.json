@@ -28,7 +28,9 @@
     "BlockTelepathicMixin",
     "AbstractSkeletonMixin",
     "BossFinalizeSpawnMixin",
-    "WitherSkullBlockMixin"
+    "WitherSkullBlockMixin",
+    "CharmNoCombineAnvilMixin",
+    "CharmNoCombineGrindstoneMixin"
   ],
   "client": [
     "ClientAdvancementsAccessor"

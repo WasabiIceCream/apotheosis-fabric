@@ -1809,3 +1809,10 @@ and tags the charm (`trinkets:charm/charm`), so it works without Friends & Foes 
   shield block, block break effects, Omnetic, block Telepathic, right-click socketing, skeleton crossbows, player tier
   augments after death, reforge seed after death, radial toggle key, tooltips, the charm in its slot. In-game steps are in
   the handoff to the user.
+
+## 0.4.5 (2026-09-30): Potion Charms can't be combined
+
+Upstream's `setNoCombineRepair()` (NeoForge-only) had been dropped, so any two charms merged in an anvil or grindstone,
+keeping the left one's potion. `CharmNoCombineAnvilMixin` (AnvilMenu.createResult) and `CharmNoCombineGrindstoneMixin`
+(GrindstoneMenu.computeResult) block charm + charm. On Gameoverse charms are also on Simple Smithing Overhaul's
+destruction allow list, so they break for good (the user's call: charms are used up, not repaired).
