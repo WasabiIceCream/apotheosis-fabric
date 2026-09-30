@@ -23,5 +23,12 @@ public abstract class ServerLevelProjectileMixin {
         if (entity instanceof Projectile proj) {
             ProjectileHooks.onProjectileAdded(proj);
         }
+        else if (entity instanceof net.minecraft.world.entity.item.ItemEntity item) {
+            // Death drops for AdventureEvents#onEntityDrops (see DeathDropsCollector).
+            var collector = dev.shadowsoffire.apotheosis.util.DeathDropsCollector.active();
+            if (collector != null) {
+                collector.apoth$collectDrop(item);
+            }
+        }
     }
 }

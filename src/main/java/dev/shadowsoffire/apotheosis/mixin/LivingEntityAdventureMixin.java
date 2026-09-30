@@ -25,6 +25,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Upstream {@code AdventureEvents} hooks on living entities that have no Fabric API event (see {@link AdventureEvents}):
@@ -36,9 +37,9 @@ import net.minecraft.world.entity.player.Player;
  * <li>{@code shieldBlock} ({@code LivingShieldBlockEvent}): gem and affix {@code onShieldBlock} change the blocked amount
  * before the shield takes durability damage, as NeoForge's event does.</li>
  * <li>{@code drops}/{@code dropsLowest}/{@code deathMark}/{@code festive_removeMarker} ({@code LivingDeathEvent} and
- * {@code LivingDropsEvent}): the item entities spawned while a non-player entity drops its death loot are collected, then
- * handed to {@link AdventureEvents#onEntityDrops} (Festive, Telepathic). Drops spawned from the loot table are recorded
- * separately (Festive copies only those).</li>
+ * {@code LivingDropsEvent}): the item entities added to the level while a non-player entity drops its death loot are
+ * collected (see {@link DeathDropsCollector}), then handed to {@link AdventureEvents#onEntityDrops} (Festive, Telepathic).
+ * Drops from the loot table are recorded separately (Festive copies only those).</li>
  * <li>Upstream {@code LivingEntityMixin}: when a mob's equipment changes its max health, keep its health percentage (mobs
  * don't regenerate, so gear with max health would otherwise leave them wounded). Port note: only when max health actually
  * changed, so the health isn't rewritten every tick.</li>
@@ -57,6 +58,10 @@ public abstract class LivingEntityAdventureMixin implements DeathDropsCollector 
 
     @Unique
     private boolean apoth$inLootTable;
+
+    @Unique
+    @Nullable
+    private Set<ItemStack> apoth$lootStacks;
 
     @Unique
     private float apoth$healthPct = -1;
@@ -80,6 +85,8 @@ public abstract class LivingEntityAdventureMixin implements DeathDropsCollector 
         if (!((Object) this instanceof Player)) {
             this.apoth$deathDrops = new ArrayList<>();
             this.apoth$lootDrops = Collections.newSetFromMap(new IdentityHashMap<>());
+            this.apoth$lootStacks = Collections.newSetFromMap(new IdentityHashMap<>());
+            DeathDropsCollector.ACTIVE.get().push(this);
         }
     }
 
@@ -99,8 +106,12 @@ public abstract class LivingEntityAdventureMixin implements DeathDropsCollector 
     private void apoth_processDrops(ServerLevel level, DamageSource source, CallbackInfo ci) {
         List<ItemEntity> drops = this.apoth$deathDrops;
         Set<ItemEntity> loot = this.apoth$lootDrops;
+        if (drops != null) {
+            DeathDropsCollector.ACTIVE.get().remove(this);
+        }
         this.apoth$deathDrops = null;
         this.apoth$lootDrops = null;
+        this.apoth$lootStacks = null;
         this.apoth$inLootTable = false;
         if (drops != null && !drops.isEmpty()) {
             AdventureEvents.onEntityDrops((LivingEntity) (Object) this, source, drops, loot);
@@ -109,11 +120,18 @@ public abstract class LivingEntityAdventureMixin implements DeathDropsCollector 
 
     @Override
     public void apoth$collectDrop(ItemEntity item) {
-        if (this.apoth$deathDrops != null) {
+        if (this.apoth$deathDrops != null && !this.apoth$deathDrops.contains(item)) {
             this.apoth$deathDrops.add(item);
-            if (this.apoth$inLootTable) {
+            if (this.apoth$inLootTable || this.apoth$lootStacks.contains(item.getItem())) {
                 this.apoth$lootDrops.add(item);
             }
+        }
+    }
+
+    @Override
+    public void apoth$recordDropStack(ItemStack stack) {
+        if (this.apoth$inLootTable && this.apoth$lootStacks != null) {
+            this.apoth$lootStacks.add(stack);
         }
     }
 

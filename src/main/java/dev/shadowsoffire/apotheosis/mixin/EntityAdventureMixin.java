@@ -18,8 +18,8 @@ import net.minecraft.world.phys.Vec3;
  * <ul>
  * <li>Upstream {@code EntityMixin}: a glowing entity without a team glows in its name colour (invaders glow in their
  * rarity colour when they spawn, {@code AdventureConfig.bossGlowOnSpawn}).</li>
- * <li>Death drop collection for {@code LivingEntityAdventureMixin}: every other {@code spawnAtLocation} overload ends in
- * this one, like NeoForge's drop capture.</li>
+ * <li>Death drop collection for {@code LivingEntityAdventureMixin}: records which stacks the loot table dropped (every
+ * other {@code spawnAtLocation} overload ends in this one).</li>
  * </ul>
  */
 @Mixin(Entity.class)
@@ -38,10 +38,10 @@ public abstract class EntityAdventureMixin {
         }
     }
 
-    @Inject(method = "spawnAtLocation(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/entity/item/ItemEntity;", at = @At("RETURN"))
-    private void apoth_collectDeathDrop(ServerLevel level, ItemStack stack, Vec3 offset, CallbackInfoReturnable<ItemEntity> cir) {
-        if (cir.getReturnValue() != null && this instanceof DeathDropsCollector collector) {
-            collector.apoth$collectDrop(cir.getReturnValue());
+    @Inject(method = "spawnAtLocation(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/entity/item/ItemEntity;", at = @At("HEAD"))
+    private void apoth_recordDeathDrop(ServerLevel level, ItemStack stack, Vec3 offset, CallbackInfoReturnable<ItemEntity> cir) {
+        if (this instanceof DeathDropsCollector collector) {
+            collector.apoth$recordDropStack(stack);
         }
     }
 }
