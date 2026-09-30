@@ -179,6 +179,13 @@ public record AffixInstance(DynamicHolder<Affix> affix, float level, DynamicHold
     }
 
     /**
+     * @see Affix#modifyEntityLoot(AffixInstance, LivingDrops)
+     */
+    public void modifyEntityLoot(LivingDrops event) {
+        this.getAffix().modifyEntityLoot(this, event);
+    }
+
+    /**
      * @see Affix#isLevelIndependent(AffixInstance)
      */
     public boolean isLevelIndependent() {

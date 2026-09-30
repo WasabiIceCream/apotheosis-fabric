@@ -42,13 +42,9 @@ import net.minecraft.world.phys.HitResult;
  * Port note (NeoForge/Apothic-Attributes -> Fabric): {@link #addModifiers} now takes this
  * port's own {@link StackAttributeModifiersEvent} instead of Apothic-Attributes'
  * {@code StackAttributeModifiersEvent} — see that class's javadoc for the mixin it's paired
- * with. Two methods are DROPPED entirely for now (not stubbed — nothing ported yet overrides
- * them): {@code getEnchantmentLevels(AffixInstance, GetEnchantmentLevelEvent)} and
- * {@code modifyEntityLoot(AffixInstance, LivingDropsEvent)}. Both need a real Fabric mixin with
- * no vanilla/Fabric API event to hook (confirmed during initial research — see the plan doc),
- * and nothing in the affix spine or already-ported effects needs them yet; add them back
- * (with the real mixin-backed hook types) when the first affix that overrides one is ported
- * (likely {@code EnchantmentAffix} for the former).
+ * with. {@code getEnchantmentLevels(AffixInstance, GetEnchantmentLevelEvent)} is replaced by
+ * {@code EnchantmentAffix#applyBonus}, called from {@code mixin.EnchantmentHelperMixin};
+ * {@code modifyEntityLoot} takes {@link LivingDrops} (0.4.4, see {@code AdventureEvents}).
  */
 public abstract class Affix implements CodecProvider<Affix>, Weighted {
 
@@ -253,6 +249,12 @@ public abstract class Affix implements CodecProvider<Affix>, Weighted {
      * @param ctx    The loot context.
      */
     public void modifyLoot(AffixInstance inst, ObjectArrayList<ItemStack> loot, LootContext ctx) {}
+
+    /**
+     * Called when a player kills an entity with this affix on their main hand item (upstream: {@code LivingDropsEvent},
+     * {@code AdventureEvents#drops}). Used by Festive.
+     */
+    public void modifyEntityLoot(AffixInstance inst, LivingDrops event) {}
 
     /**
      * An affix is compatible with another affix if they aren't the name affix, and neither is exclusive with the other.

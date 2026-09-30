@@ -31,10 +31,10 @@ import dev.shadowsoffire.apotheosis.util.AttributeTooltipContext;
  * item classes (gems, reforging table, etc.) had {@code appendHoverText} overrides; nothing
  * applied to arbitrary vanilla items carrying affix/rarity/socket components.
  * <p>
- * Scope note: this ports the affix-description-lines half only (the highest-value, most visible
- * piece). Not yet ported: the world-tier-tutorial gating, the durability-bonus/malice-marker
- * lines, and the "star-prefix over-max-affix attribute modifiers" search (all in the original
- * method but not required for the socket/affix display to work at all). The socket line here is
+ * Scope note: the affix lines, since 0.4.4 also the durability bonus and malice lines and
+ * upstream's {@code showBlacklistedPotions}. Not ported: the world-tier-tutorial gating (upstream
+ * also hides the affix attribute lines then, which this port can't) and the "star-prefix
+ * over-max-affix attribute modifiers" search. The socket line here is
  * a plain text line rather than upstream's custom icon-based {@code SocketComponent}
  * {@code TooltipComponent} (which needs its own client tooltip-component-factory registration
  * and renderer, not yet ported) — functional confirmation of "you have N sockets", not the
@@ -46,7 +46,18 @@ public final class AdventureTooltips {
 
     public static void register() {
         ItemTooltipCallback.EVENT.register((stack, context, flag, tooltip) -> {
-            if (!stack.has(Components.AFFIXES) && !stack.has(Components.RARITY) && SocketHelper.getSockets(stack) <= 0) {
+            // Upstream showBlacklistedPotions.
+            if (stack.getItem() == net.minecraft.world.item.Items.POTION) {
+                var potion = stack.getOrDefault(DataComponents.POTION_CONTENTS, net.minecraft.world.item.alchemy.PotionContents.EMPTY).potion()
+                    .orElse(net.minecraft.world.item.alchemy.Potions.WATER);
+                if (!dev.shadowsoffire.apotheosis.item.PotionCharmItem.isValidPotion(potion)) {
+                    tooltip.add(Component.translatable("misc.apotheosis.blacklisted_potion").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
+                }
+                return;
+            }
+
+            if (!stack.has(Components.AFFIXES) && !stack.has(Components.RARITY) && SocketHelper.getSockets(stack) <= 0
+                && !stack.has(Components.DURABILITY_BONUS) && !stack.has(Components.MALICE_MARKER) && !stack.has(Components.TOUCHED_BY_MALICE)) {
                 return;
             }
 
@@ -69,6 +80,18 @@ public final class AdventureTooltips {
                             }
                         }
                     });
+            }
+
+            // Upstream affixTooltips: the rolled durability bonus and the malice markers.
+            if (stack.has(Components.DURABILITY_BONUS) && !stack.has(DataComponents.UNBREAKABLE)) {
+                Component desc = Component.translatable("affix.apotheosis:durable.desc", Math.round(100 * stack.get(Components.DURABILITY_BONUS)));
+                lines.add(ApothMiscUtil.dotPrefix(desc).withStyle(ChatFormatting.YELLOW));
+            }
+            if (stack.getOrDefault(Components.MALICE_MARKER, false)) {
+                lines.add(dev.shadowsoffire.apotheosis.Apotheosis.lang("text", "malice_marker").withStyle(ChatFormatting.RED, ChatFormatting.UNDERLINE));
+            }
+            if (stack.getOrDefault(Components.TOUCHED_BY_MALICE, false)) {
+                lines.add(ApothMiscUtil.dotPrefix(dev.shadowsoffire.apotheosis.Apotheosis.lang("text", "touched_by_malice")).withStyle(ChatFormatting.RED));
             }
 
             int sockets = SocketHelper.getSockets(stack);

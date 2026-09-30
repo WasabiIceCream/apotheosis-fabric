@@ -7,7 +7,14 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import dev.shadowsoffire.apotheosis.affix.Affix;
 import dev.shadowsoffire.apotheosis.affix.AffixDefinition;
+import dev.shadowsoffire.apotheosis.affix.AffixHelper;
 import dev.shadowsoffire.apotheosis.affix.AffixInstance;
+import dev.shadowsoffire.apotheosis.affix.LivingDrops;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import dev.shadowsoffire.apotheosis.loot.LootCategory;
 import dev.shadowsoffire.apotheosis.loot.LootRarity;
 import dev.shadowsoffire.apotheosis.util.AttributeTooltipContext;
@@ -20,14 +27,10 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Teleport Drops
  * <p>
- * Port note (NeoForge -> Fabric): dropped the two static {@code drops(...)} event-hook helpers
- * (one for {@code LivingDropsEvent}, one for {@code BlockDropsEvent}) — both NeoForge-only
- * events for inspecting/relocating a drop list before it spawns, with no Fabric/vanilla
- * equivalent (confirmed during initial research — see the plan doc's mixin-needed list). The
- * affix itself (what makes {@link #enablesTelepathy()} true, and where it applies) ports
- * cleanly; only the actual drop-relocation behavior needs a mixin, deferred until
- * {@code AdventureEvents} (the not-yet-ported event-bus wiring hub these were called from) is
- * reached.
+ * Port note (NeoForge -> Fabric): upstream's two {@code drops} hooks run on NeoForge's {@code LivingDropsEvent} and
+ * {@code BlockDropsEvent}. Here {@link #drops(LivingDrops)} is called by {@code AdventureEvents} after a mob's death drops
+ * are collected ({@code mixin.LivingEntityDropsMixin}), and block drops are moved by {@code mixin.BlockTelepathicMixin}
+ * through {@link #blockDropTarget}.
  */
 public class TelepathicAffix extends Affix {
 
@@ -37,7 +40,6 @@ public class TelepathicAffix extends Affix {
             PlaceboCodecs.setOf(LootRarity.CODEC).fieldOf("rarities").forGetter(a -> a.rarities))
         .apply(inst, TelepathicAffix::new));
 
-    public static Vec3 blockDropTargetPos = null;
 
     protected Set<LootRarity> rarities;
 
@@ -61,6 +63,45 @@ public class TelepathicAffix extends Affix {
     @Override
     public boolean enablesTelepathy() {
         return true;
+    }
+
+    /**
+     * Upstream {@code drops(LivingDropsEvent)} (lowest priority): moves every drop to the killer when the weapon (or the arrow,
+     * which carries its bow's affixes) has telepathy.
+     */
+    public static void drops(LivingDrops e) {
+        DamageSource src = e.source();
+        boolean canTeleport = false;
+        Vec3 targetPos = null;
+        if (src.getDirectEntity() instanceof AbstractArrow arrow && arrow.getOwner() != null) {
+            canTeleport = AffixHelper.streamAffixes(arrow).anyMatch(AffixInstance::enablesTelepathy);
+            targetPos = arrow.getOwner().position();
+        }
+        else if (src.getDirectEntity() instanceof LivingEntity living) {
+            ItemStack weapon = living.getMainHandItem();
+            canTeleport = AffixHelper.streamAffixes(weapon).anyMatch(AffixInstance::enablesTelepathy);
+            targetPos = living.position();
+        }
+
+        if (canTeleport && !targetPos.equals(Vec3.ZERO)) {
+            for (ItemEntity item : e.drops()) {
+                item.setPos(targetPos.x, targetPos.y, targetPos.z);
+                item.setPickUpDelay(0);
+            }
+        }
+    }
+
+    /**
+     * Upstream {@code drops(BlockDropsEvent)}: where the drops of a block broken by {@code breaker} go, or null to leave them.
+     */
+    @org.jetbrains.annotations.Nullable
+    public static Vec3 blockDropTarget(@org.jetbrains.annotations.Nullable Entity breaker, ItemStack tool) {
+        if (breaker instanceof LivingEntity living && !living.position().equals(Vec3.ZERO)) {
+            if (AffixHelper.streamAffixes(living.getMainHandItem()).anyMatch(AffixInstance::enablesTelepathy)) {
+                return living.position();
+            }
+        }
+        return null;
     }
 
     @Override

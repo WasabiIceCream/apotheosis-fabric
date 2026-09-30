@@ -12,6 +12,17 @@ import dev.shadowsoffire.apotheosis.affix.Affix;
 import dev.shadowsoffire.apotheosis.affix.AffixBuilder;
 import dev.shadowsoffire.apotheosis.affix.AffixDefinition;
 import dev.shadowsoffire.apotheosis.affix.AffixInstance;
+import dev.shadowsoffire.apotheosis.affix.LivingDrops;
+import dev.shadowsoffire.apotheosis.util.PersistentDataComponent;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import dev.shadowsoffire.apotheosis.loot.LootCategory;
 import dev.shadowsoffire.apotheosis.loot.LootRarity;
 import dev.shadowsoffire.apotheosis.util.AttributeTooltipContext;
@@ -23,15 +34,11 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Loot Pinata
  * <p>
- * Port note (NeoForge -> Fabric): dropped {@code markEquipment}/{@code modifyEntityLoot}/
- * {@code removeMarker} — all three are hooks for NeoForge's {@code LivingDeathEvent}/
- * {@code LivingDropsEvent} (no Fabric equivalent for inspecting/modifying a drop list before it
- * spawns — confirmed dead end during initial research) and NeoForge's {@code Capabilities.Item.ENTITY}
- * (mob-inventory-as-a-resource-handler capability lookup, no Fabric equivalent either). The
- * actual gameplay effect — spawning extra item copies on a mob's death — needs both a
- * drop-list mixin and an {@code IFestiveMarker}-equivalent (a per-ItemStack "already counted"
- * flag, likely a small Cardinal Components item component once ported) neither of which exist
- * yet. The affix's data/description/applicability logic ports cleanly on its own.
+ * Port note (NeoForge -> Fabric): upstream marks the dead entity's equipment and inventory stacks on
+ * {@code LivingDeathEvent} ({@code markEquipment}), copies every unmarked drop in {@code LivingDropsEvent}
+ * ({@link #modifyEntityLoot}) and clears the marks afterwards ({@code removeMarker}). Here the drops are collected by
+ * {@code mixin.LivingEntityDropsMixin} and everything dropped outside the entity's loot table counts as marked (see
+ * {@link LivingDrops}), so no per-stack marker is needed.
  */
 public class FestiveAffix extends Affix {
 
@@ -72,6 +79,38 @@ public class FestiveAffix extends Affix {
 
     private float getTrueLevel(LootRarity rarity, float level) {
         return this.values.get(rarity).chance().get(level);
+    }
+
+    @Override
+    public void modifyEntityLoot(AffixInstance inst, LivingDrops e) {
+        LivingEntity dead = e.entity();
+        if (dead instanceof Player || PersistentDataComponent.get(dead).getBooleanOr("apoth.no_pinata", false)) {
+            return;
+        }
+        if (e.source().getEntity() instanceof Player player && !e.drops().isEmpty()) {
+            if (inst != null && inst.isValid() && player.level().getRandom().nextFloat() < this.getTrueLevel(inst.getRarity(), inst.level())) {
+                player.level().playSound(null, dead.getX(), dead.getY(), dead.getZ(), SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 4.0F,
+                    (1.0F + (player.level().getRandom().nextFloat() - player.level().getRandom().nextFloat()) * 0.2F) * 0.7F);
+                ((ServerLevel) player.level()).sendParticles(ParticleTypes.EXPLOSION_EMITTER, dead.getX(), dead.getY(), dead.getZ(), 2, 1.0D, 0.0D, 0.0D, 0);
+
+                List<ItemEntity> drops = new ArrayList<>(e.drops());
+                for (ItemEntity item : drops) {
+                    if (e.isMarked(item)) {
+                        continue;
+                    }
+
+                    int rolls = this.values.get(inst.getRarity()).rolls();
+                    for (int i = 0; i < rolls; i++) {
+                        e.drops().add(new ItemEntity(player.level(), item.getX(), item.getY(), item.getZ(), item.getItem().copy()));
+                    }
+                }
+
+                for (ItemEntity item : e.drops()) {
+                    item.setPos(dead.getX(), dead.getY(), dead.getZ());
+                    item.setDeltaMovement(-0.3 + dead.level().getRandom().nextDouble() * 0.6, 0.3 + dead.level().getRandom().nextDouble() * 0.3, -0.3 + dead.level().getRandom().nextDouble() * 0.6);
+                }
+            }
+        }
     }
 
     @Override

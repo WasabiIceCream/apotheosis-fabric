@@ -60,7 +60,7 @@ public class AffixHelper {
     public static final String SOURCE_WEAPON = "apoth.source_weapon";
 
     // Must match affix.reforging.ReforgingMenu.REFORGE_SEED once that's ported.
-    private static final String REFORGE_SEED = "apoth_reforge_seed";
+    public static final String REFORGE_SEED = "apoth_reforge_seed";
 
     /**
      * Adds this specific affix to the Item's NBT tag.

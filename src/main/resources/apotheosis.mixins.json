@@ -21,7 +21,14 @@
     "ChestUnderSpawnerMixin",
     "ServerLevelProjectileMixin",
     "ProjectileImpactMixin",
-    "DamageSourceMagicalMixin"
+    "DamageSourceMagicalMixin",
+    "LivingEntityAdventureMixin",
+    "EntityAdventureMixin",
+    "PlayerOmneticMixin",
+    "BlockTelepathicMixin",
+    "AbstractSkeletonMixin",
+    "BossFinalizeSpawnMixin",
+    "WitherSkullBlockMixin"
   ],
   "client": [
     "ClientAdvancementsAccessor"

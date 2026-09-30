@@ -26,9 +26,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 
 /**
- * Port note: the {@code harvest}/{@code speed} event-hook static methods (NeoForge
- * {@code PlayerEvent.HarvestCheck}/{@code BreakSpeed}) are dropped — see
- * {@code util.OmneticUtil}'s javadoc.
+ * Port note: upstream's {@code harvest}/{@code speed} hooks (NeoForge {@code PlayerEvent.HarvestCheck}/{@code BreakSpeed})
+ * are {@code mixin.PlayerOmneticMixin}, which reads {@link #getData}.
  */
 public class OmneticAffix extends Affix {
 
@@ -56,6 +55,21 @@ public class OmneticAffix extends Affix {
     @Override
     public MutableComponent getDescription(AffixInstance inst, AttributeTooltipContext ctx) {
         return Component.translatable("affix." + this.id() + ".desc", Component.translatable("misc.apotheosis." + this.values.get(inst.getRarity()).name()));
+    }
+
+    /**
+     * The omnetic data of the first valid Omnetic affix on the stack, or null.
+     */
+    @org.jetbrains.annotations.Nullable
+    public static OmneticData getData(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return null;
+        }
+        AffixInstance inst = dev.shadowsoffire.apotheosis.affix.AffixHelper.streamAffixes(stack).filter(i -> i.getAffix() instanceof OmneticAffix).findFirst().orElse(null);
+        if (inst != null && inst.isValid()) {
+            return ((OmneticAffix) inst.getAffix()).values.get(inst.getRarity());
+        }
+        return null;
     }
 
     @Override

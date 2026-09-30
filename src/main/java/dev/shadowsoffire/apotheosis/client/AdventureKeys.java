@@ -12,11 +12,9 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 
 /**
- * Port note (NeoForge -> Fabric): only {@code LINK_ITEM_TO_CHAT} is ported so far —
- * {@code TOGGLE_RADIAL} was already replaced by {@code util.RadialMiningComponent}'s built-in
- * sync (no keybind-driven packet needed), and {@code OPEN_WORLD_TIER_SELECT}/
- * {@code COMPARE_EQUIPMENT} need client screens (world-tier select, equipment comparison
- * tooltip) that aren't ported yet.
+ * Port note (NeoForge -> Fabric): {@code COMPARE_EQUIPMENT} (the equipment comparison tooltip) isn't ported.
+ * {@code TOGGLE_RADIAL} was added in 0.4.4 (before that, radial mining was stuck in its default mode, "Disabled While
+ * Sneaking"); it sends {@code RadialStatePayload} and the new mode comes back through {@code util.RadialMiningComponent}.
  * <p>
  * Also drops NeoForge's {@code KeyConflictContext.GUI}/{@code KeyModifier.SHIFT} (vanilla
  * {@link KeyMapping} has no modifier-key concept at all) in favor of binding plain T and
@@ -31,6 +29,11 @@ public class AdventureKeys {
     public static final KeyMapping LINK_ITEM_TO_CHAT = KeyMappingHelper.registerKeyMapping(new KeyMapping(
         Apotheosis.langKey("key", "link_item_to_chat"),
         Type.KEYSYM, GLFW.GLFW_KEY_T, CATEGORY));
+
+    /** Upstream: Ctrl + O. Vanilla key mappings have no modifier keys, so Ctrl is checked when the key is pressed. */
+    public static final KeyMapping TOGGLE_RADIAL = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+        Apotheosis.langKey("key", "toggle_radial_mining"),
+        Type.KEYSYM, GLFW.GLFW_KEY_O, CATEGORY));
 
     public static final KeyMapping OPEN_WORLD_TIER_SELECT = KeyMappingHelper.registerKeyMapping(new KeyMapping(
         Apotheosis.langKey("key", "open_world_tier_select"),
@@ -62,6 +65,12 @@ public class AdventureKeys {
             boolean shiftDown = InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT) || InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_RIGHT_SHIFT);
             if (shiftDown) {
                 ItemLinking.sendHoveredItem();
+            }
+        }
+        while (TOGGLE_RADIAL.consumeClick()) {
+            boolean ctrlDown = InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_LEFT_CONTROL) || InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_RIGHT_CONTROL);
+            if (ctrlDown && mc.screen == null) {
+                net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(new dev.shadowsoffire.apotheosis.net.RadialStatePayload());
             }
         }
         while (OPEN_WORLD_TIER_SELECT.consumeClick()) {

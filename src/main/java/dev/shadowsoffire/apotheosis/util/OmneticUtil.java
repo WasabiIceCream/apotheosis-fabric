@@ -16,17 +16,34 @@ import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Port note (NeoForge -> Fabric): dropped both {@code applyOmneticData} overloads (one for
- * {@code PlayerEvent.BreakSpeed}, one for {@code PlayerEvent.HarvestCheck}) — both NeoForge-only
- * events. Per the plan's earlier research, break-speed modification has no Fabric API event at
- * all (needs a mixin into {@code ServerPlayerGameMode}/{@code Player.getDestroySpeed}), while
- * harvest-check is likely covered by Fabric API's {@code PlayerBlockBreakEvents.BEFORE/AFTER}.
- * {@link #getBaseSpeed} (the actual dig-speed math, a copy of vanilla's own
- * {@code Player#getDigSpeed} minus its event-firing tail) and {@link OmneticData} are real
- * vanilla-only logic and port cleanly — only the event-hook wiring needs a mixin, deferred
- * until {@code OmneticAffix}'s dropped {@code harvest}/{@code speed} methods are revisited.
+ * Port note (NeoForge -> Fabric): upstream's {@code applyOmneticData} overloads take NeoForge's
+ * {@code PlayerEvent.BreakSpeed} and {@code HarvestCheck}. Here they take the vanilla values instead and are called from
+ * {@code mixin.PlayerOmneticMixin} ({@code Player#getDestroySpeed} and {@code Player#hasCorrectToolForDrops}).
  */
 public class OmneticUtil {
+
+    /**
+     * Upstream {@code applyOmneticData(BreakSpeed, OmneticData)}: the best speed among the omnetic tools, or the current
+     * speed if that is higher.
+     */
+    public static float applyOmneticSpeed(Player player, BlockState state, float speed, OmneticData data) {
+        for (ItemStackTemplate template : data.items()) {
+            speed = Math.max(getBaseSpeed(player, template.create(), state, BlockPos.ZERO), speed);
+        }
+        return speed;
+    }
+
+    /**
+     * Upstream {@code applyOmneticData(HarvestCheck, OmneticData)}: true if any of the omnetic tools can harvest the block.
+     */
+    public static boolean canOmneticHarvest(BlockState state, OmneticData data) {
+        for (ItemStackTemplate template : data.items()) {
+            if (template.create().isCorrectToolForDrops(state)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Resolves the base dig speed for a player. This is effectively a copy of {@link Player#getDigSpeed}

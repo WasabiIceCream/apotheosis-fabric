@@ -19,10 +19,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 
 /**
- * Port note: the {@code harvest}/{@code speed} static event-hook methods (NeoForge
- * {@code PlayerEvent.HarvestCheck}/{@code BreakSpeed}) are dropped — see
- * {@code util.OmneticUtil}'s javadoc. This bonus's data/tooltip is fully functional; only the
- * actual break-speed/harvest-check wiring is pending a Fabric-side hook.
+ * Port note: upstream's {@code harvest}/{@code speed} hooks (NeoForge {@code PlayerEvent.HarvestCheck}/{@code BreakSpeed})
+ * are {@code mixin.PlayerOmneticMixin}, which reads {@link #getData}.
  */
 public class OmneticBonus extends GemBonus {
 
@@ -52,6 +50,21 @@ public class OmneticBonus extends GemBonus {
     @Override
     public Component getSocketBonusTooltip(GemView gem, AttributeTooltipContext ctx) {
         return Component.translatable("affix.apotheosis:breaker/effect/omnetic.desc", Component.translatable("misc.apotheosis." + this.values.get(gem.purity()).name())).withStyle(ChatFormatting.YELLOW);
+    }
+
+    /**
+     * The omnetic data of the first valid Omnetic gem socketed in the stack, or null.
+     */
+    @org.jetbrains.annotations.Nullable
+    public static OmneticData getData(net.minecraft.world.item.ItemStack stack) {
+        if (stack.isEmpty()) {
+            return null;
+        }
+        var inst = dev.shadowsoffire.apotheosis.socket.SocketHelper.getGems(stack).streamValidGems().filter(g -> g.getBonus().orElse(null) instanceof OmneticBonus).findFirst().orElse(null);
+        if (inst != null && inst.isValid()) {
+            return ((OmneticBonus) inst.getBonus().get()).values.get(inst.purity());
+        }
+        return null;
     }
 
     public Map<Purity, OmneticData> getValues() {
