@@ -36,6 +36,8 @@ gateways and the tower structures are out of scope.
 - Server additions (Gameoverse): a Spell Weapon category for Spell Engine staves and wands with school-matched spell
   power, spell haste, crit and projectile-effect affixes, and invaders that crit, life steal and pierce armor at higher
   rarities (see `DEVLOG.md` 0.4.3)
+- Server addition (Gameoverse, 0.4.4): Potion Charms work in the Trinkets "Charm" slot when
+  [Trinkets Updated](https://modrinth.com/mod/trinkets-updated) is installed (optional; upstream's Curios charm slot)
 - `/apoth spawn_boss` and `/apoth spawn_elite` for operators, and the
   `apotheosis:is_invader` / `apotheosis:is_elite` entity predicates for
   advancements (see `DEVLOG.md` for the JSON)
@@ -70,6 +72,13 @@ Not everything ported cleanly:
 - The Gem Case screen has no background texture, and the reforging/
   augmenting tables' floating 3D props aren't rendered (no free asset
   source for either)
+- Hoppers and pipes can't use the salvaging/reforging/augmenting tables or
+  gem cases (upstream's automation handlers aren't ported)
+- Cosmetic client features not ported: loot beams and particles on dropped
+  rarity items, the gem icon row in socket tooltips (text lines instead),
+  equipment comparison, radial mining outlines
+- `DEVLOG.md` (0.4.4) has the full list of upstream integration points and
+  how each is connected
 
 Everything else works: rarities, affixes, gem sockets/cutting/case
 storage, reforging/salvaging/augmenting, and loot injection are all live
