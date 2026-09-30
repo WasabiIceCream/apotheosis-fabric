@@ -17,7 +17,8 @@
     "EntityInvoker",
     "ServerPlayerCreativeFlightMixin",
     "AnvilGemSmashingMixin",
-    "BaseSpawnerAccessor"
+    "BaseSpawnerAccessor",
+    "ChestUnderSpawnerMixin"
   ],
   "client": [
     "ClientAdvancementsAccessor"

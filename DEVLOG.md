@@ -1529,3 +1529,9 @@ chunks, 1 rogue spawner per 37). No vanilla dungeon spawners in that sample.
   (`boss_item: "empty:empty"`, so a random invader).
 - Not tested (needs a player): a Caged Invader releasing its boss, a rogue
   spawner actually spawning, the block's look on a client.
+
+## 0.4.2 (2026-09-29): chest under a rogue spawner opens
+
+In-game test: Multiplayer Spawners makes spawners unbreakable (mining only disables them), and vanilla won't open a chest
+with a solid block on top, so a rogue spawner's chest could never be opened; breaking the chest lost the loot (Slash
+Loot keeps per-player contents). `ChestUnderSpawnerMixin` lets `ChestBlock.isBlockedChestByBlock` ignore a spawner above.
