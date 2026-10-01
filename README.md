@@ -74,11 +74,12 @@ Not everything ported cleanly:
   source for either)
 - Hoppers and pipes can't use the salvaging/reforging/augmenting tables or
   gem cases (upstream's automation handlers aren't ported)
-- Cosmetic client features not ported: loot beams and particles on dropped
-  rarity items, the gem icon row in socket tooltips (text lines instead),
+- Cosmetic client features not ported: the gem icon row in socket tooltips (text lines instead),
   equipment comparison, radial mining outlines
 - `DEVLOG.md` (0.4.4) has the full list of upstream integration points and
   how each is connected
+
+Loot beams (since 0.4.6) use Loot Beams Refork's beam, textures and drop sound (CC0), see `DEVLOG.md`.
 
 Everything else works: rarities, affixes, gem sockets/cutting/case
 storage, reforging/salvaging/augmenting, and loot injection are all live

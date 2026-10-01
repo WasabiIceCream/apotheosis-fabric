@@ -64,5 +64,13 @@
         "pitch": 1.25
       }
     ]
+  },
+  "loot_drop": {
+    "subtitle": "apotheosis.subtitle.loot_drop",
+    "sounds": [
+      { "name": "apotheosis:loot_drop_1", "stream": true },
+      { "name": "apotheosis:loot_drop_2", "stream": true },
+      { "name": "apotheosis:loot_drop_3", "stream": true }
+    ]
   }
 }

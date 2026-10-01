@@ -10,10 +10,10 @@
         "glow_texture": "apotheosis:textures/rarity/glow.png",
         "shadow": {
             "alpha": 255,
-            "frame_time": 1.5,
-            "frames": 20,
+            "frame_time": 1.0,
+            "frames": 1,
             "size": 0.35,
-            "texture": "apotheosis:textures/rarity/shadow_t2.png"
+            "texture": "apotheosis:textures/rarity/shadow.png"
         }
     },
     "rules": [

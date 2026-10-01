@@ -198,6 +198,16 @@ public class Apoth {
         private static void bootstrap() {}
     }
 
+    public static final class Particles {
+        /** Rising rarity-coloured particle on dropped epic+ items (client {@code AffixItemEffectRenderer}). */
+        public static final net.minecraft.core.particles.ParticleType<dev.shadowsoffire.apotheosis.particle.RarityParticleData> RARITY_GLOW = net.minecraft.core.Registry.register(
+            net.minecraft.core.registries.BuiltInRegistries.PARTICLE_TYPE, Apotheosis.loc("rarity_glow"),
+            net.fabricmc.fabric.api.particle.v1.FabricParticleTypes.complex(false, dev.shadowsoffire.apotheosis.particle.RarityParticleData.CODEC,
+                dev.shadowsoffire.apotheosis.particle.RarityParticleData.STREAM_CODEC));
+
+        private static void bootstrap() {}
+    }
+
     public static final class Features {
         public static final Holder<net.minecraft.world.level.levelgen.feature.Feature<?>> BOSS_DUNGEON = R.feature("boss_dungeon", dev.shadowsoffire.apotheosis.gen.BossDungeonFeature::new);
         public static final Holder<net.minecraft.world.level.levelgen.feature.Feature<?>> BOSS_DUNGEON_2 = R.feature("boss_dungeon_2", dev.shadowsoffire.apotheosis.gen.BossDungeonFeature2::new);
@@ -636,6 +646,7 @@ public class Apoth {
         CustomAttributes.bootstrap();
         Attachments.bootstrap();
         Features.bootstrap();
+        Particles.bootstrap();
     }
 
 }

@@ -33,7 +33,9 @@
     "CharmNoCombineGrindstoneMixin"
   ],
   "client": [
-    "ClientAdvancementsAccessor"
+    "ClientAdvancementsAccessor",
+    "EntityRendererMixin",
+    "RenderTypeInvoker"
   ],
   "minVersion": "0.8.5",
   "injectors": {

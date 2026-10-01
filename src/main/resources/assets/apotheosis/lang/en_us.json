@@ -1030,5 +1030,6 @@
     "affix.apotheosis:spell/mob_effect/flowing": "Flowing",
     "affix.apotheosis:spell/mob_effect/flowing.suffix": "of the Current",
     "loot_category.apotheosis.spell_weapon": "Spell Weapon",
-    "loot_category.apotheosis.spell_weapon.plural": "Spell Weapons"
+    "loot_category.apotheosis.spell_weapon.plural": "Spell Weapons",
+    "apotheosis.subtitle.loot_drop": "Rare loot lands"
 }

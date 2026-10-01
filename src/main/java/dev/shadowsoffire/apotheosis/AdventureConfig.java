@@ -65,6 +65,9 @@ public class AdventureConfig {
     /** If true, bosses will glow when they spawn. */
     public static boolean bossGlowOnSpawn = true;
 
+    /** If affix item effects (beams, tinted shadows, particles on dropped items with a rarity) are enabled. Clientside. */
+    public static boolean enableAffixItemEffects = true;
+
     // Generation (upstream's "worldgen" and "spawners" config categories; same defaults, plain constants)
 
     /**

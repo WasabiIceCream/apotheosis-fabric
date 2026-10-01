@@ -100,3 +100,15 @@ Gem Case GUI sheet, the feature postdates the pre-split cutoff, Zenith
 never implemented it, and the CurseForge pack has no GUI-sheet textures at
 all. `GemCaseScreen` will render with the missing-texture checkerboard for
 its background until this is sourced or hand-authored.
+
+## Loot Beams Refork (CC0 1.0)
+
+From [TUsama/Loot-Beams-Refork](https://github.com/TUsama/Loot-Beams-Refork) (branch `multiversion`, mod 3.4.7),
+dedicated to the public domain under CC0 1.0. Added 0.4.6 for the loot beams, since upstream's own beam textures
+postdate its asset license split:
+
+- `textures/rarity/beam.png` and `textures/rarity/glow.png` (both LBR's `textures/entity/main_beam.png`; beam and bloom)
+- `textures/rarity/beam_top.png` (LBR's `textures/entity/beam_top.png`)
+- `textures/rarity/shadow.png` (LBR's `textures/entity/glow.png`)
+- `textures/particle/rarity_glow.png` (LBR's `textures/particle/glow.png`)
+- `sounds/loot_drop_{1,2,3}.ogg` (LBR's `sounds/drop_0{1,2,3}.ogg`)

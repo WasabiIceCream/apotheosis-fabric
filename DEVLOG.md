@@ -1820,3 +1820,33 @@ Also in 0.4.5 (Gameoverse, the user's call after the in-game test): `AdventureCo
 installed a Potion Charm works only while worn in the Charm slot and is always on there: no inventory ticking, no
 right-click toggle, no glint, tooltip "Applies %s while worn in the Charm slot." Without Trinkets, upstream behaviour.
 The right-click toggle assumed no accessory slot; here it only added a way to leave a worn charm switched off.
+
+## 0.4.6 (2026-10-01): loot beams
+
+Ported upstream's `AffixItemEffectRenderer` (skipped in 0.4.4 as cosmetic), with the beam itself taken from Loot Beams
+Refork (github.com/TUsama/Loot-Beams-Refork, CC0) because upstream's beam/glow/shadow/particle textures postdate its
+asset license split (no MIT version exists, checked against `f12308b`'s tree).
+
+- Dropped items with a rarity, on the ground: a camera-facing beam strip (`main_beam`), a 1.35x wider bloom strip at 40%
+  alpha where the rarity's `glow_radius` > 0 (epic, mythic), a flame cap (`beam_top`) on top, growing in over 15 ticks
+  and fading beyond 15 blocks (LBR's numbers). Height and on/off still come from each rarity's `render_data`
+  (rare 2.5, epic 3, mythic 3.5; common and uncommon none). Half width = max(1.25 x `beam_radius`, 0.04).
+- Shadow: upstream's `ShadowRenderer` (projected onto the blocks below, tinted by rarity colour), texture LBR's round
+  `glow.png`; the rarity files point at `apotheosis:textures/rarity/shadow.png`, one frame (upstream's are animated ring
+  sheets). `EntityRendererMixin` (client) zeroes the vanilla shadow radius for those items, as upstream.
+- Particles: `Apoth.Particles.RARITY_GLOW` (`FabricParticleTypes.complex`), upstream's `RarityParticle`, sprite LBR's
+  particle `glow.png`; epic and mythic (rarity `particle.enabled`).
+- Drop chime (LBR's three `drop_0N.ogg` as `apotheosis:loot_drop`, subtitle "Rare loot lands"): played once, 0.1
+  volume, 8-block fixed range, AMBIENT, when a beamed item seen in the air lands. Items already on the ground when they
+  come into view stay silent (LBR plays on first render, which chimes for every item in a loaded pile).
+- Shader packs: with an Iris pack in use (`IrisApi.isShaderPackInUse`, by reflection) the beam uses a
+  `TRANSLUCENT_PARTICLE` render type (`RenderTypeInvoker` for the package-private `RenderType.create`), as LBR does;
+  otherwise `RenderTypes.beaconBeam(tex, true)`.
+- Fabric wiring: `LevelRenderEvents.COLLECT_SUBMITS` and `ClientTickEvents.END_CLIENT_TICK` (upstream:
+  `SubmitCustomGeometryEvent`, `ClientTickEvent.Post`); upstream's three per-item data attachments are a client-side
+  `WeakHashMap`. `AdventureConfig.enableAffixItemEffects` (true) is a constant, no config file yet.
+- Gameoverse: `gameoverse-jewel-gems` overrides common/uncommon/rare rarity files with copies made from the jar, so its
+  generator must be re-run after this (otherwise those three point at the old missing shadow textures).
+
+Tested in game 2026-10-01 (Working instance, Eclipse shader on and off): five rarities side by side, beams, bloom, caps,
+tinted glows, particles, chime on landing. Replaces Better Item Despawn's despawn glow on Gameoverse (removed).
