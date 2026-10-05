@@ -18,14 +18,18 @@ import dev.shadowsoffire.apotheosis.tiers.WorldTier;
  * @param spawnChances The per-world-tier spawn chances for invaders in the target dimension.
  * @param cooldown     An optional cooldown override for this dimension. If not set, the configured default cooldown will be used.
  * @param surfaceType  The surface type used for this dimension.
+ * @param cursed       Overrides {@code AdventureConfig.curseBossItems} in this dimension (upstream 9.1.0).
+ * @param autoAggro    Overrides {@code AdventureConfig.bossAutoAggro} in this dimension (upstream 9.1.0).
  */
-public record InvaderSpawnRules(Map<WorldTier, Float> spawnChances, Optional<Integer> cooldown, SurfaceType surfaceType) {
+public record InvaderSpawnRules(Map<WorldTier, Float> spawnChances, Optional<Integer> cooldown, SurfaceType surfaceType, Optional<Boolean> cursed, Optional<Boolean> autoAggro) {
 
     public static final Codec<InvaderSpawnRules> CODEC = RecordCodecBuilder.<InvaderSpawnRules>create(inst -> inst
         .group(
             WorldTier.mapCodec(Codec.floatRange(0, 1)).fieldOf("spawn_chances").forGetter(InvaderSpawnRules::spawnChances),
             Codec.intRange(0, 720000).optionalFieldOf("cooldown").forGetter(InvaderSpawnRules::cooldown),
-            SurfaceType.CODEC.fieldOf("surface_type").forGetter(InvaderSpawnRules::surfaceType))
+            SurfaceType.CODEC.fieldOf("surface_type").forGetter(InvaderSpawnRules::surfaceType),
+            Codec.BOOL.optionalFieldOf("cursed").forGetter(InvaderSpawnRules::cursed),
+            Codec.BOOL.optionalFieldOf("auto_aggro").forGetter(InvaderSpawnRules::autoAggro))
         .apply(inst, InvaderSpawnRules::new))
         .validate(InvaderSpawnRules::validate);
 

@@ -261,8 +261,19 @@ public record Invader(BasicBossData basicData, EntityType<?> entity, AABB size, 
             }
 
             if (s == guaranteed) {
+                // Per-dimension override of curseBossItems (upstream 9.1.0); dimensions without spawn rules use the config
+                // (upstream's crash fix for "truly random" invaders spawned where no rules exist).
+                boolean cursed = AdventureConfig.curseBossItems;
+                if (mob.level() instanceof net.minecraft.world.level.ServerLevelAccessor sl) {
+                    net.minecraft.resources.ResourceKey<net.minecraft.world.level.dimension.DimensionType> dimId = sl.getLevel().dimensionTypeRegistration().unwrapKey().orElse(null);
+                    dev.shadowsoffire.apotheosis.mobs.InvaderSpawnRules rules = dimId == null ? null : dev.shadowsoffire.apotheosis.mobs.registries.InvaderSpawnRulesRegistry.INSTANCE.getRules(dimId);
+                    if (rules != null) {
+                        cursed = rules.cursed().orElse(AdventureConfig.curseBossItems);
+                    }
+                }
+
                 mob.setDropChance(s, 2F);
-                mob.setItemSlot(s, modifyBossItem(stack, mob.getName(), ctx, rarity, stats.enchLevels().primary(), mob.level().registryAccess()));
+                mob.setItemSlot(s, modifyBossItem(stack, mob.getName(), ctx, rarity, stats.enchLevels().primary(), mob.level().registryAccess(), cursed));
                 mob.setCustomName(mob.getName().copy().withStyle(Style.EMPTY.withColor(rarity.color())));
             }
             else if (rand.nextFloat() < stats.enchantChance()) {
@@ -295,7 +306,7 @@ public record Invader(BasicBossData basicData, EntityType<?> entity, AABB size, 
         EnchantmentHelper.setEnchantments(stack, builder.toImmutable());
     }
 
-    public static ItemStack modifyBossItem(ItemStack stack, Component bossName, GenContext ctx, LootRarity rarity, int enchLevel, RegistryAccess reg) {
+    public static ItemStack modifyBossItem(ItemStack stack, Component bossName, GenContext ctx, LootRarity rarity, int enchLevel, RegistryAccess reg, boolean cursed) {
         RandomSource rand = ctx.rand();
         if (enchLevel > 0) {
             enchantBossItem(rand, stack, enchLevel, true, reg);
@@ -338,7 +349,7 @@ public record Invader(BasicBossData basicData, EntityType<?> entity, AABB size, 
             }
         }
 
-        if (AdventureConfig.curseBossItems) {
+        if (cursed) {
             List<Holder.Reference<Enchantment>> curses = reg.lookupOrThrow(Registries.ENCHANTMENT).listElements().filter(e -> e.is(EnchantmentTags.CURSE) && e.is(EnchantmentTags.ON_MOB_SPAWN_EQUIPMENT)).toList();
             if (!curses.isEmpty()) {
                 Holder<Enchantment> curse = curses.get(rand.nextInt(curses.size()));

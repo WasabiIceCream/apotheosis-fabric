@@ -188,7 +188,7 @@ public class ApothMobEvents {
             }
 
             Mob boss = item.createBoss(sLevel, BlockPos.containing(mob.getX() - 0.5, mob.getY(), mob.getZ() - 0.5), ctx);
-            if (AdventureConfig.bossAutoAggro && !player.isCreative()) {
+            if (rules.autoAggro().orElse(AdventureConfig.bossAutoAggro) && !player.isCreative()) {
                 boss.setTarget(player);
             }
 
