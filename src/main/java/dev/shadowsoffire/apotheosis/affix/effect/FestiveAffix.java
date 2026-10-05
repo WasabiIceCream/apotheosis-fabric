@@ -95,7 +95,7 @@ public class FestiveAffix extends Affix {
 
                 List<ItemEntity> drops = new ArrayList<>(e.drops());
                 for (ItemEntity item : drops) {
-                    if (e.isMarked(item)) {
+                    if (e.isMarked(item) || item.getItem().is(dev.shadowsoffire.apotheosis.Apoth.Tags.CANNOT_BE_DUPLICATED)) {
                         continue;
                     }
 

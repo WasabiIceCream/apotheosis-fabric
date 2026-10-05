@@ -124,6 +124,9 @@ public class Apoth {
      * {@code data/apotheosis/tags/damage_type/is_magic.json}.
      */
     public static final class Tags {
+        /** Items never copied by loot-duplicating effects (the Festive affix). Upstream 9.1.0. */
+        public static final net.minecraft.tags.TagKey<net.minecraft.world.item.Item> CANNOT_BE_DUPLICATED = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM, Apotheosis.loc("cannot_be_duplicated"));
+
         public static final net.minecraft.tags.TagKey<net.minecraft.world.damagesource.DamageType> IS_MAGIC = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.DAMAGE_TYPE, Apotheosis.loc("is_magic"));
 
         /**
