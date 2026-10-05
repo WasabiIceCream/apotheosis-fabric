@@ -1850,3 +1850,36 @@ asset license split (no MIT version exists, checked against `f12308b`'s tree).
 
 Tested in game 2026-10-01 (Working instance, Eclipse shader on and off): five rarities side by side, beams, bloom, caps,
 tinted glows, particles, chime on landing. Replaces Better Item Despawn's despawn glow on Gameoverse (removed).
+
+## 0.5.0 (2026-10-05): upstream 9.1.0
+
+Upstream's `26.1` branch moved 23 commits past this port's base (`ae0ef78`) to 9.1.0. Ported everything that applies,
+one commit (or stacked group) per local commit:
+- Fixes: Gem Case upgrade materials persist in the block entity (`c767ea3`; a `SimpleContainer` saved under
+  `upgrade_materials`, travels with the broken case); null-safe invader curse lookup for dimensions without spawn rules
+  (`2eb034e`). Already in this port: brutal spawner/elite attribute ids (`95e6867`) and the brutal pillager's crossbow
+  (`16a0ba7`).
+- Malice rework (`1ff9c00`, `a23ff88`, `9a88918`): repeatable; one level-dependent affix rises to 2.0, another resets
+  to 0 (`ItemAffixes.Builder.put` keeps level-0 affixes now); 3.3% chance of no reset when one affix is left below 2.0;
+  `TOUCHED_BY_MALICE` is an int (old boolean NBT reads as 1); starred tooltip once malice can't help.
+- Pinnacle chase gear (`732ba17`): single over-max enchantments on Pinnacle invader gear. The Apothic Enchanting and
+  Apothic Spawners variants are left out (optional tag entries).
+- Damage reduction tier augments (`a04b552`): Summit 10%, Pinnacle 15% physical and magic for monsters;
+  `DamageReductions` in a Fabric attachment, applied first in `AdventureEvents.onHurt`.
+- Runebreaking/Nullifying affixes, Timekeeping on shields, Mageslayer toned down (`d8f5e45`, data only).
+- Unhurried/Surefooted/Steadfast boots affixes (`5c7b8bf`, `a451c0e`): Ctrl+K switches speed/step-height bonuses off.
+  `AttributeToggles` clamps in a `LivingEntity#getAttributeValue` mixin (both sides); the state is a Fabric attachment
+  synced to its player (`syncWith(..., targetOnly())`, replacing upstream's client-bound payload), copied on death,
+  pruned on boots change, join and respawn. `AttributeInstance#getModifiers(Operation)` widened.
+- Anti-gravity arrows (`171e664`): Lunar gems (Flawless+) in bows/tridents; restore tick from an `AbstractArrow#tick`
+  mixin (upstream: `EntityTickEvent`). Lunar's cold damage is melee-only; our water-movement adaptation kept.
+- `apotheosis:cannot_be_duplicated` tag, honoured by Festive (`e6fdc74`; Frozen Drops isn't ported).
+- Per-dimension invader `cursed` and `auto_aggro` (`ea41755`); invader name additions (`cd0b261`).
+
+Not applicable: initial-health spawner rune (`df6d777`, no spawner modifiers here), Spawner Chain immunity (`7407990`,
+no Spawner Chain item), JEI stoneforming display (`1671006`, no JEI plugin), Chronicle pages (`cd0b261`, Patchouli),
+translations (`fc975fc`, `421134a`, `df2af98`: post-split assets, All Rights Reserved). New English strings are our own
+wording; key names follow upstream's.
+
+Boot-tested: 116 affixes (was 111), 23 tier augments (was 19), no new errors. Dependent generators re-run with the 0.5.0
+jar (farming-path, jewel-gems, modded-invaders, skill-forest, dragon-loot): no output changes.
