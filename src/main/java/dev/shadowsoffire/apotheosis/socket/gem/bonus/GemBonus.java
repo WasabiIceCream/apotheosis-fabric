@@ -259,6 +259,7 @@ public abstract class GemBonus implements CodecProvider<GemBonus> {
         register("mob_effect", MobEffectBonus.CODEC);
         register("omnetic", dev.shadowsoffire.apotheosis.socket.gem.bonus.special.OmneticBonus.CODEC);
         register("radial", dev.shadowsoffire.apotheosis.socket.gem.bonus.special.RadialBonus.CODEC);
+        register("anti_gravity_arrow", dev.shadowsoffire.apotheosis.socket.gem.bonus.special.AntiGravityArrowBonus.CODEC);
         // TODO: register "frozen_drops" (FrozenDropsBonus) once a Fabric-native replacement for
         // Apothic-Attributes' COLD_DAMAGE attribute + Attachments.COLD_DAMAGE_TAKEN exists.
         // Apothic-Attributes itself is out of scope for this port (see README).

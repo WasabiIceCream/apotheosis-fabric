@@ -210,6 +210,13 @@ public class Apoth {
             Apotheosis.loc("attribute_toggles"), b -> b.persistent(dev.shadowsoffire.apotheosis.attachments.AttributeToggles.CODEC).copyOnDeath()
                 .syncWith(dev.shadowsoffire.apotheosis.attachments.AttributeToggles.STREAM_CODEC, net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate.targetOnly()));
 
+        /**
+         * Game time an arrow lost its gravity to an {@code AntiGravityArrowBonus} (upstream 9.1.0). Only present while the
+         * arrow flies without gravity.
+         */
+        public static final net.fabricmc.fabric.api.attachment.v1.AttachmentType<Long> ANTI_GRAVITY_ARROW_START = net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry.create(
+            Apotheosis.loc("anti_gravity_arrow_start"), b -> b.persistent(Codec.LONG));
+
         private static void bootstrap() {}
     }
 

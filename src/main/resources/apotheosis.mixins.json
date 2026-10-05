@@ -25,6 +25,7 @@
     "LivingEntityAdventureMixin",
     "AttributeInstanceMixin",
     "AttributeToggleMixin",
+    "AntiGravityArrowMixin",
     "EntityAdventureMixin",
     "PlayerOmneticMixin",
     "BlockTelepathicMixin",
