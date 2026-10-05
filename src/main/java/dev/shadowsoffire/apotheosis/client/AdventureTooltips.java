@@ -107,8 +107,10 @@ public final class AdventureTooltips {
             if (stack.getOrDefault(Components.MALICE_MARKER, false)) {
                 lines.add(dev.shadowsoffire.apotheosis.Apotheosis.lang("text", "malice_marker").withStyle(ChatFormatting.RED, ChatFormatting.UNDERLINE));
             }
-            if (stack.getOrDefault(Components.TOUCHED_BY_MALICE, false)) {
-                lines.add(ApothMiscUtil.dotPrefix(dev.shadowsoffire.apotheosis.Apotheosis.lang("text", "touched_by_malice")).withStyle(ChatFormatting.RED));
+            if (stack.getOrDefault(Components.TOUCHED_BY_MALICE, 0) > 0) {
+                Component desc = dev.shadowsoffire.apotheosis.Apotheosis.lang("text", "touched_by_malice", String.valueOf(stack.get(Components.TOUCHED_BY_MALICE)));
+                // Items malice can no longer help get a star instead of a dot.
+                lines.add((AffixHelper.isExtremelyMalicious(stack) ? ApothMiscUtil.starPrefix(desc) : ApothMiscUtil.dotPrefix(desc)).withStyle(ChatFormatting.RED));
             }
 
             int sockets = SocketHelper.getSockets(stack);

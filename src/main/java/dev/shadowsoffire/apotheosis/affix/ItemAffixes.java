@@ -100,7 +100,8 @@ public final class ItemAffixes {
         }
 
         public Builder put(DynamicHolder<Affix> affix, float level) {
-            if (level <= 0) {
+            // Level 0 keeps the affix (the Sigil of Malice resets affixes to 0); only negative levels remove it.
+            if (level < 0) {
                 this.affixes.removeFloat(affix);
             }
             else {

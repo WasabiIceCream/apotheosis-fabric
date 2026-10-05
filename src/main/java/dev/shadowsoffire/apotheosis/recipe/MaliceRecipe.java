@@ -28,7 +28,7 @@ public class MaliceRecipe extends ApothSmithingRecipe implements ReactiveSmithin
     public boolean matches(SmithingRecipeInput inv, Level level) {
         ItemStack base = inv.getItem(BASE);
         ItemStack sigils = inv.getItem(ADDITION);
-        return base.getCount() == 1 && sigils.is(Items.SIGIL_OF_MALICE) && AffixHelper.getAffixes(base).size() >= 2 && !base.getOrDefault(Apoth.Components.TOUCHED_BY_MALICE, false);
+        return base.getCount() == 1 && sigils.is(Items.SIGIL_OF_MALICE) && AffixHelper.canApplyMalice(base);
     }
 
     /**
