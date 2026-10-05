@@ -80,6 +80,7 @@
     "text.apotheosis.world_tier_tutorial.2": "Press %s and activate World Tier: Haven to unlock it",
 
     "key.apotheosis.toggle_radial_mining": "Change Radial Mining Mode",
+    "key.apotheosis.toggle_attribute_bonuses": "Toggle Boots Bonuses (with Ctrl)",
     "key.apotheosis.open_world_tier_select": "Open World Tier Select",
     "key.apotheosis.compare_equipment": "Compare Hovered Equipment",
     "trinkets.slot.charm.charm": "Charm",
@@ -177,6 +178,12 @@
 
     "affix.apotheosis:weapon/attribute/shredding": "Shredding",
     "affix.apotheosis:weapon/attribute/shredding.suffix": "of the Maelstrom",
+    "affix.apotheosis:boots/ability/unhurried": "Unhurried",
+    "affix.apotheosis:boots/ability/unhurried.suffix": "of the Easy Stroll",
+    "affix.apotheosis:boots/ability/unhurried.desc": "Ctrl + %s switches your movement speed bonuses off and on",
+    "affix.apotheosis:boots/ability/surefooted": "Surefooted",
+    "affix.apotheosis:boots/ability/surefooted.suffix": "of Level Ground",
+    "affix.apotheosis:boots/ability/surefooted.desc": "Ctrl + %s switches your step height bonuses off and on",
     "affix.apotheosis:weapon/attribute/runebreaking": "Runebreaking",
     "affix.apotheosis:weapon/attribute/runebreaking.suffix": "of Broken Wards",
     "affix.apotheosis:weapon/attribute/nullifying": "Nullifying",
@@ -386,6 +393,11 @@
     
     "misc.apotheosis.physical": "Physical",
     "misc.apotheosis.magic": "Magic",
+    "misc.apotheosis.attribute_toggle.updated": "%s bonuses: %s",
+    "misc.apotheosis.attribute_toggle.none": "Your boots have no bonuses to switch",
+    "misc.apotheosis.attribute_toggle.state": "(now %s)",
+    "misc.apotheosis.attribute_toggle.on": "On",
+    "misc.apotheosis.attribute_toggle.off": "Off",
     "tier_augment.apotheosis.damage_reduction": "Monsters take %s%% less %s damage",
     "misc.apotheosis.fire": "Fire",
     "misc.apotheosis.fall": "Fall",

@@ -53,6 +53,14 @@ public final class AdventureEvents {
     public static void register() {
         // Upstream: blockBreak (BreakBlockEvent, normal priority). Registered before the radial mining hook (low priority upstream).
         PlayerBlockBreakEvents.AFTER.register((level, player, pos, state, be) -> blockBreak(player, level, pos, state));
+        // Upstream 9.1.0: drop attribute toggles the worn boots no longer provide (equipment change, joining, respawn).
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.EQUIPMENT_CHANGE.register((entity, slot, from, to) -> {
+            if (slot == net.minecraft.world.entity.EquipmentSlot.FEET && entity instanceof net.minecraft.server.level.ServerPlayer player) {
+                dev.shadowsoffire.apotheosis.affix.effect.AttributeToggleAffix.prune(player);
+            }
+        });
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> dev.shadowsoffire.apotheosis.affix.effect.AttributeToggleAffix.prune(handler.player));
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> dev.shadowsoffire.apotheosis.affix.effect.AttributeToggleAffix.prune(newPlayer));
         // Upstream: clone (PlayerEvent.Clone), the reforge seed survives death so dying can't reroll the reforging table.
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
             int oldSeed = PersistentDataComponent.get(oldPlayer).getIntOr(AffixHelper.REFORGE_SEED, 0);

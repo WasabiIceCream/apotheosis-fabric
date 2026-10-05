@@ -202,6 +202,14 @@ public class Apoth {
         public static final net.fabricmc.fabric.api.attachment.v1.AttachmentType<dev.shadowsoffire.apotheosis.attachments.DamageReductions> DAMAGE_REDUCTIONS = net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry.create(
             Apotheosis.loc("damage_reductions"), b -> b.persistent(dev.shadowsoffire.apotheosis.attachments.DamageReductions.CODEC));
 
+        /**
+         * The attributes whose bonuses the player has switched off with a boots {@code AttributeToggleAffix} (upstream
+         * 9.1.0). Synced to its own player: the client predicts movement speed and step height.
+         */
+        public static final net.fabricmc.fabric.api.attachment.v1.AttachmentType<dev.shadowsoffire.apotheosis.attachments.AttributeToggles> ATTRIBUTE_TOGGLES = net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry.create(
+            Apotheosis.loc("attribute_toggles"), b -> b.persistent(dev.shadowsoffire.apotheosis.attachments.AttributeToggles.CODEC).copyOnDeath()
+                .syncWith(dev.shadowsoffire.apotheosis.attachments.AttributeToggles.STREAM_CODEC, net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate.targetOnly()));
+
         private static void bootstrap() {}
     }
 

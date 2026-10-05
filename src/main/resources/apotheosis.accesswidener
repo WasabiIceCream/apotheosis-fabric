@@ -26,3 +26,6 @@ accessible field net/minecraft/world/level/BaseSpawner spawnCount I
 accessible field net/minecraft/world/level/BaseSpawner maxNearbyEntities I
 accessible field net/minecraft/world/level/BaseSpawner requiredPlayerRange I
 accessible field net/minecraft/world/level/BaseSpawner spawnRange I
+
+# attachments.AttributeToggles recomputes an attribute's value from its modifiers (upstream 9.1.0: access transformer).
+accessible method net/minecraft/world/entity/ai/attributes/AttributeInstance getModifiers (Lnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)Ljava/util/Map;

@@ -52,7 +52,8 @@ public class AffixRegistry extends TieredDynamicRegistry<Affix> {
         .register(Apotheosis.loc("telepathic"), TelepathicAffix.CODEC)
         .register(Apotheosis.loc("thunderstruck"), ThunderstruckAffix.CODEC)
         .register(Apotheosis.loc("enchantment"), EnchantmentAffix.CODEC)
-        .register(Apotheosis.loc("stoneforming"), StoneformingAffix.CODEC);
+        .register(Apotheosis.loc("stoneforming"), StoneformingAffix.CODEC)
+        .register(Apotheosis.loc("attribute_toggle"), dev.shadowsoffire.apotheosis.affix.effect.AttributeToggleAffix.CODEC);
 
     public static final AffixRegistry INSTANCE = new AffixRegistry();
 

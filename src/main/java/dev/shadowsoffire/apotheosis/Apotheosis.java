@@ -88,6 +88,7 @@ public class Apotheosis implements ModInitializer {
         dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.LinkItemToChatPayload.Provider());
         dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.RerollResultPayload.Provider());
         dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.GemCaseSelectPayload.Provider());
+        dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.AttributeTogglesPayload.Provider());
         dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.WorldTierPayload.Provider());
         dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.BossSpawnPayload.Provider());
         dev.shadowsoffire.placebo.network.PayloadHelper.registerPayload(new dev.shadowsoffire.apotheosis.net.RadialStatePayload.Provider());

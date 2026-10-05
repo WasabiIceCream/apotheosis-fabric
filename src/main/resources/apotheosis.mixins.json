@@ -23,6 +23,8 @@
     "ProjectileImpactMixin",
     "DamageSourceMagicalMixin",
     "LivingEntityAdventureMixin",
+    "AttributeInstanceMixin",
+    "AttributeToggleMixin",
     "EntityAdventureMixin",
     "PlayerOmneticMixin",
     "BlockTelepathicMixin",

@@ -35,6 +35,11 @@ public class AdventureKeys {
         Apotheosis.langKey("key", "toggle_radial_mining"),
         Type.KEYSYM, GLFW.GLFW_KEY_O, CATEGORY));
 
+    /** Upstream 9.1.0: Ctrl + K. Ctrl is checked when the key is pressed, like {@link #TOGGLE_RADIAL}. */
+    public static final KeyMapping TOGGLE_ATTRIBUTE_BONUSES = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+        dev.shadowsoffire.apotheosis.affix.effect.AttributeToggleAffix.TOGGLE_KEY,
+        Type.KEYSYM, GLFW.GLFW_KEY_K, CATEGORY));
+
     public static final KeyMapping OPEN_WORLD_TIER_SELECT = KeyMappingHelper.registerKeyMapping(new KeyMapping(
         Apotheosis.langKey("key", "open_world_tier_select"),
         Type.KEYSYM, GLFW.GLFW_KEY_U, CATEGORY));
@@ -71,6 +76,12 @@ public class AdventureKeys {
             boolean ctrlDown = InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_LEFT_CONTROL) || InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_RIGHT_CONTROL);
             if (ctrlDown && mc.screen == null) {
                 net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(new dev.shadowsoffire.apotheosis.net.RadialStatePayload());
+            }
+        }
+        while (TOGGLE_ATTRIBUTE_BONUSES.consumeClick()) {
+            boolean ctrlDown = InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_LEFT_CONTROL) || InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_RIGHT_CONTROL);
+            if (ctrlDown && mc.screen == null) {
+                net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(new dev.shadowsoffire.apotheosis.net.AttributeTogglesPayload());
             }
         }
         while (OPEN_WORLD_TIER_SELECT.consumeClick()) {
