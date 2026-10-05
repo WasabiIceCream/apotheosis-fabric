@@ -177,6 +177,10 @@
 
     "affix.apotheosis:weapon/attribute/shredding": "Shredding",
     "affix.apotheosis:weapon/attribute/shredding.suffix": "of the Maelstrom",
+    "affix.apotheosis:weapon/attribute/runebreaking": "Runebreaking",
+    "affix.apotheosis:weapon/attribute/runebreaking.suffix": "of Broken Wards",
+    "affix.apotheosis:weapon/attribute/nullifying": "Nullifying",
+    "affix.apotheosis:weapon/attribute/nullifying.suffix": "of Undoing",
 
     "affix.apotheosis:melee/attribute/giant_slaying": "Giant Slaying",
     "affix.apotheosis:melee/attribute/giant_slaying.suffix": "of Colossal Strikes",
