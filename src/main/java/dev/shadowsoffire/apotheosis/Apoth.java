@@ -195,6 +195,13 @@ public class Apoth {
         public static final net.fabricmc.fabric.api.attachment.v1.AttachmentType<Long> INVADER_COOLDOWN = net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry.create(
             Apotheosis.loc("invader_cooldown"), b -> b.persistent(Codec.LONG).copyOnDeath());
 
+        /**
+         * Extra damage reductions (upstream 9.1.0: World Tier damage reduction augments), applied in
+         * {@code AdventureEvents#onHurt} before the gem and affix reductions.
+         */
+        public static final net.fabricmc.fabric.api.attachment.v1.AttachmentType<dev.shadowsoffire.apotheosis.attachments.DamageReductions> DAMAGE_REDUCTIONS = net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry.create(
+            Apotheosis.loc("damage_reductions"), b -> b.persistent(dev.shadowsoffire.apotheosis.attachments.DamageReductions.CODEC));
+
         private static void bootstrap() {}
     }
 

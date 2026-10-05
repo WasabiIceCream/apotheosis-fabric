@@ -382,6 +382,7 @@
     
     "misc.apotheosis.physical": "Physical",
     "misc.apotheosis.magic": "Magic",
+    "tier_augment.apotheosis.damage_reduction": "Monsters take %s%% less %s damage",
     "misc.apotheosis.fire": "Fire",
     "misc.apotheosis.fall": "Fall",
     "misc.apotheosis.explosion": "Explosive",

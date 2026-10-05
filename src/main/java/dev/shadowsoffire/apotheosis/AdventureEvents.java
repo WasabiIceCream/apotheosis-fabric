@@ -71,6 +71,11 @@ public final class AdventureEvents {
      * Attributes' incoming damage handling (projectile damage, crits, dodge), like upstream's priorities.
      */
     public static float onHurt(LivingEntity ent, DamageSource src, float amount) {
+        // World Tier damage reduction augments (upstream 9.1.0), before the equipment's own reductions.
+        dev.shadowsoffire.apotheosis.attachments.DamageReductions reductions = ent.getAttached(dev.shadowsoffire.apotheosis.Apoth.Attachments.DAMAGE_REDUCTIONS);
+        if (reductions != null) {
+            amount = reductions.applyReductions(src, amount);
+        }
         for (EquipmentSlot slot : EquipmentSlot.VALUES) {
             ItemStack s = ent.getItemBySlot(slot);
             if (s.isEmpty()) {
