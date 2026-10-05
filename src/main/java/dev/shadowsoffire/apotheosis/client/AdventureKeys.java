@@ -35,10 +35,13 @@ public class AdventureKeys {
         Apotheosis.langKey("key", "toggle_radial_mining"),
         Type.KEYSYM, GLFW.GLFW_KEY_O, CATEGORY));
 
-    /** Upstream 9.1.0: Ctrl + K. Ctrl is checked when the key is pressed, like {@link #TOGGLE_RADIAL}. */
+    /**
+     * Upstream 9.1.0: Ctrl + K. Here a plain key, semicolon: K alone opens Gameoverse's Skill Forest (vanilla key mappings
+     * have no modifiers, so Ctrl+K would fire both), and Controlify's emulated key presses can't hold Ctrl.
+     */
     public static final KeyMapping TOGGLE_ATTRIBUTE_BONUSES = KeyMappingHelper.registerKeyMapping(new KeyMapping(
         dev.shadowsoffire.apotheosis.affix.effect.AttributeToggleAffix.TOGGLE_KEY,
-        Type.KEYSYM, GLFW.GLFW_KEY_K, CATEGORY));
+        Type.KEYSYM, GLFW.GLFW_KEY_SEMICOLON, CATEGORY));
 
     public static final KeyMapping OPEN_WORLD_TIER_SELECT = KeyMappingHelper.registerKeyMapping(new KeyMapping(
         Apotheosis.langKey("key", "open_world_tier_select"),
@@ -79,8 +82,7 @@ public class AdventureKeys {
             }
         }
         while (TOGGLE_ATTRIBUTE_BONUSES.consumeClick()) {
-            boolean ctrlDown = InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_LEFT_CONTROL) || InputConstants.isKeyDown(mc.getWindow(), GLFW.GLFW_KEY_RIGHT_CONTROL);
-            if (ctrlDown && mc.screen == null) {
+            if (mc.screen == null) {
                 net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(new dev.shadowsoffire.apotheosis.net.AttributeTogglesPayload());
             }
         }
