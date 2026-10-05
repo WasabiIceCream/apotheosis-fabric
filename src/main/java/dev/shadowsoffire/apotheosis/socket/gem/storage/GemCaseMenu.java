@@ -33,13 +33,6 @@ public class GemCaseMenu extends BlockEntityMenu<GemCaseTile> implements IButton
     public static final int FIRST_UPGRADE_MAT_SLOT = 8;
 
     protected SimpleContainer ioInv = new SimpleContainer(2);
-    protected SimpleContainer upgradeMatInv = new SimpleContainer(6){
-        @Override
-        public void setChanged() {
-            super.setChanged();
-            GemCaseMenu.this.onChanged();
-        }
-    };
     protected Runnable notifier = null;
 
     @Nullable
@@ -59,11 +52,8 @@ public class GemCaseMenu extends BlockEntityMenu<GemCaseTile> implements IButton
     @Override
     public void removed(Player player) {
         super.removed(player);
-        if (!this.level.isClientSide()) {
-            this.tile.removeListener(this);
-        }
+        this.tile.removeListener(this);
         this.clearContainer(player, this.ioInv);
-        this.clearContainer(player, this.upgradeMatInv);
     }
 
     void initCommon(Inventory inv) {
@@ -111,8 +101,9 @@ public class GemCaseMenu extends BlockEntityMenu<GemCaseTile> implements IButton
             this.addSlot(new GemCaseSlot(this, p, 21 + p.ordinal() * 18, 91));
         }
 
-        for (int i = 0; i < this.upgradeMatInv.getContainerSize(); i++) {
-            this.addSlot(new Slot(this.upgradeMatInv, i, -45 + 18 * (i % 2), 37 + 18 * (i / 2)){
+        // Upgrade materials are persistent storage on the tile; its container notifies open menus on change.
+        for (int i = 0; i < GemCaseTile.UPGRADE_MAT_SLOTS; i++) {
+            this.addSlot(new Slot(this.tile.getUpgradeMaterials(), i, -45 + 18 * (i % 2), 37 + 18 * (i / 2)){
                 @Override
                 public boolean mayPlace(ItemStack stack) {
                     return GemCaseMenu.this.isValidUpgradeMaterial(stack);
@@ -122,12 +113,6 @@ public class GemCaseMenu extends BlockEntityMenu<GemCaseTile> implements IButton
                 public int getMaxStackSize() {
                     return 64;
                 }
-
-                @Override
-                public void setChanged() {
-                    super.setChanged();
-                    GemCaseMenu.this.onChanged();
-                }
             });
         }
 
@@ -135,9 +120,9 @@ public class GemCaseMenu extends BlockEntityMenu<GemCaseTile> implements IButton
 
         this.mover.registerRule((stack, slot) -> slot == FILTER_SLOT, this.playerInvStart, this.slots.size());
         this.mover.registerRule((stack, slot) -> slot >= FIRST_GEM_SLOT && slot < FIRST_UPGRADE_MAT_SLOT, this.playerInvStart, this.slots.size());
-        this.mover.registerRule((stack, slot) -> slot >= FIRST_UPGRADE_MAT_SLOT && slot < FIRST_UPGRADE_MAT_SLOT + 6, this.playerInvStart, this.slots.size());
+        this.mover.registerRule((stack, slot) -> slot >= FIRST_UPGRADE_MAT_SLOT && slot < FIRST_UPGRADE_MAT_SLOT + GemCaseTile.UPGRADE_MAT_SLOTS, this.playerInvStart, this.slots.size());
         this.mover.registerRule((stack, slot) -> slot >= this.playerInvStart && stack.is(Apoth.Items.GEM), INPUT_SLOT, INPUT_SLOT + 1);
-        this.mover.registerRule((stack, slot) -> slot >= this.playerInvStart && this.isValidUpgradeMaterial(stack), FIRST_UPGRADE_MAT_SLOT, FIRST_UPGRADE_MAT_SLOT + 6);
+        this.mover.registerRule((stack, slot) -> slot >= this.playerInvStart && this.isValidUpgradeMaterial(stack), FIRST_UPGRADE_MAT_SLOT, FIRST_UPGRADE_MAT_SLOT + GemCaseTile.UPGRADE_MAT_SLOTS);
         this.mover.registerRule((stack, slot) -> !LootCategory.forItem(stack).isNone(), FILTER_SLOT, FILTER_SLOT + 1);
         this.registerInvShuffleRules();
     }
@@ -182,7 +167,12 @@ public class GemCaseMenu extends BlockEntityMenu<GemCaseTile> implements IButton
         if (this.selectedGem == null) {
             return null;
         }
-        return this.tile.getUpgradeMatch(GemRegistry.INSTANCE.holder(this.selectedGem), purity, this.upgradeMatInv);
+        return this.tile.getUpgradeMatch(GemRegistry.INSTANCE.holder(this.selectedGem), purity);
+    }
+
+    /** The upgrade material in the given slot of the tile's persistent material storage. */
+    public ItemStack getUpgradeMaterial(int slot) {
+        return this.tile.getUpgradeMaterials().getItem(slot);
     }
 
     @Override
@@ -230,7 +220,7 @@ public class GemCaseMenu extends BlockEntityMenu<GemCaseTile> implements IButton
         int tries = shift ? 64 : 1;
 
         while (tries-- > 0) {
-            boolean result = this.tile.upgradeGem(holder, purity, this.upgradeMatInv);
+            boolean result = this.tile.upgradeGem(holder, purity);
             if (!result) {
                 break;
             }

@@ -29,6 +29,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
@@ -47,6 +49,22 @@ public abstract class GemCaseTile extends BlockEntity implements TickingBlockEnt
     protected final Object2ObjectMap<DynamicHolder<Gem>, EnumMap<Purity, Integer>> gems = new Object2ObjectLinkedOpenHashMap<>();
     protected final Set<GemCaseMenu> activeContainers = new HashSet<>();
     protected final int maxCount;
+
+    public static final int UPGRADE_MAT_SLOTS = 6;
+
+    /**
+     * Persistent storage for purity upgrade materials (upstream 9.1.0, "Make the gem case upgrade inv persist"):
+     * it used to be a temporary container on the menu, emptied back to the player on close. Not exposed to
+     * automation. Saved with the block entity, so it also travels with the item when the case is broken.
+     */
+    protected final SimpleContainer upgradeMats = new SimpleContainer(UPGRADE_MAT_SLOTS){
+        @Override
+        public void setChanged() {
+            super.setChanged();
+            GemCaseTile.this.setChanged();
+            GemCaseTile.this.activeContainers.forEach(GemCaseMenu::onChanged);
+        }
+    };
 
     // Client-side only: Animation state for gem position switching
     private GemCaseAnimationState animationState;
@@ -105,10 +123,10 @@ public abstract class GemCaseTile extends BlockEntity implements TickingBlockEnt
         return stack;
     }
 
-    public boolean upgradeGem(DynamicHolder<Gem> gem, Purity purity, Container matInv) {
-        GemUpgradeMatch match = this.getUpgradeMatch(gem, purity, matInv);
+    public boolean upgradeGem(DynamicHolder<Gem> gem, Purity purity) {
+        GemUpgradeMatch match = this.getUpgradeMatch(gem, purity);
         if (match != null) {
-            match.execute(matInv, this.getGems(gem));
+            match.execute(this.upgradeMats, this.getGems(gem));
 
             if (!this.level.isClientSide()) {
                 VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
@@ -123,12 +141,17 @@ public abstract class GemCaseTile extends BlockEntity implements TickingBlockEnt
     }
 
     @Nullable
-    public GemUpgradeMatch getUpgradeMatch(DynamicHolder<Gem> gem, Purity purity, Container matInv) {
+    public GemUpgradeMatch getUpgradeMatch(DynamicHolder<Gem> gem, Purity purity) {
         EnumMap<Purity, Integer> map = this.getGems(gem);
         if (map.get(purity) >= this.maxCount) {
             return null;
         }
-        return GemUpgradeMatch.findMatch(this.level, purity, map, matInv);
+        return GemUpgradeMatch.findMatch(this.level, purity, map, this.upgradeMats);
+    }
+
+    /** The persistent upgrade material inventory. Only intended for use by {@link GemCaseMenu}. */
+    public SimpleContainer getUpgradeMaterials() {
+        return this.upgradeMats;
     }
 
     public int getCount(DynamicHolder<Gem> gem, Purity purity) {
@@ -207,6 +230,7 @@ public abstract class GemCaseTile extends BlockEntity implements TickingBlockEnt
         CompoundTag gemTag = new CompoundTag();
         this.saveGemData(gemTag);
         output.store("gems", CompoundTag.CODEC, gemTag);
+        ContainerHelper.saveAllItems(output.child("upgrade_materials"), this.upgradeMats.getItems());
     }
 
     /**
@@ -225,6 +249,8 @@ public abstract class GemCaseTile extends BlockEntity implements TickingBlockEnt
             wrapper.put("gems", gems);
             this.loadGemData(wrapper);
         });
+        this.upgradeMats.getItems().clear();
+        input.child("upgrade_materials").ifPresent(mats -> ContainerHelper.loadAllItems(mats, this.upgradeMats.getItems()));
         if (this.level != null && this.level.isClientSide()) {
             this.activeContainers.forEach(GemCaseMenu::onChanged);
         }
