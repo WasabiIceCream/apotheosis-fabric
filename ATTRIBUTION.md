@@ -38,6 +38,11 @@ as it stood at that time:
   upstream's `mythic_material.png.mcmeta` (animated texture)
 - `textures/item/sigils/{enhancement,rebirth,socketing,unnaming,withdrawal}.png`
 - `sounds/reforge.ogg` (added 0.4.2, git blob `4fb7acf`, identical at `f12308b`): played as `reforge_item_reforged`.
+- `lang/ja_jp.json` (added 0.5.2): 517 of its 838 strings are upstream's Japanese translation by okazako
+  ([#1464](https://github.com/Shadows-of-Fire/Apotheosis/pull/1464), 2025-02-01) as it stood at `cd61a56e`
+  (2025-02-17, before the split), kept only where the English text is unchanged since then (one `%s%` fixed to
+  `%s%%`). The other 321 are this port's own translation; later upstream translation updates (e.g. #1649,
+  2025-11) postdate the split and are not used.
   Upstream's later sounds (invader, malice, reforge placed) postdate the split and are not shipped; `sounds.json`
   maps them to vanilla sound events instead.
 - `textures/block/{boss_spawner,boss_spawner_top}.png` (added 0.4.1, from upstream's `textures/blocks/`;
