@@ -54,7 +54,7 @@ public class GemCaseScreen extends AdventureContainerScreen<GemCaseMenu> impleme
      * Position and size of the upgrade material panel, which hangs off the left edge of the screen.
      */
     public static final int LEFT_PANEL_WIDTH = 65;
-    public static final int LEFT_PANEL_HEIGHT = 193;
+    public static final int LEFT_PANEL_HEIGHT = 81; // upstream 193; our sheet (tools/draw_gem_case.py) only holds the 6 material slots
     public static final int LEFT_PANEL_Y_OFFSET = 16;
 
     protected float scrollOffs;

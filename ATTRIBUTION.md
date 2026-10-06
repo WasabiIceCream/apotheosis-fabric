@@ -59,16 +59,17 @@ supplied that also existed pre-split was swapped out in favor of it.
 **Not covered by this pre-split source**, these features were added to
 upstream *after* March 2025, so no MIT-era version of them exists:
 
-- Gem Case / Ender Gem Case (block textures, item icons, GUI background)
+- Gem Case / Ender Gem Case (block textures, item icons, GUI background); since 0.5.0 replaced by our own art, below
 - `sigils/malice.png`, `sigils/supremacy.png`
 
 ## CurseForge, "Apotheosis 8.5.4 Legacy Textures" (Chive_X, listed MIT)
 
 Still used for the files the pre-split source doesn't cover:
 
-- `textures/block/{basic_gem_case,ender_gem_case}.png`
-- `textures/item/{gem_case_icon,ender_gem_case_icon}.png`
 - `textures/item/sigils/{malice,supremacy}.png`
+
+(Until 0.5.0 also the Gem Case block textures and item icons; those were UV sheets for upstream's 3D model, which we
+never had, so they rendered as a scrambled cube. Replaced by our own art.)
 
 Downloaded via CurseForge's CDN (file ID 8480272). Same provenance caveat as
 before (see README): listed MIT by the redistributor, but is explicitly the
@@ -78,7 +79,7 @@ independent work. Used with the user's explicit go-ahead for this private
 
 ## Not in this public repo
 
-The 6 files listed just above (the "Apotheosis 8.5.4 Legacy Textures"
+The files listed just above (6 until 0.5.0, now the 2 sigil icons) (the "Apotheosis 8.5.4 Legacy Textures"
 CurseForge pack files) are excluded from this repository and from its
 GitHub Releases jar, even though the actual mod running on the Gameoverse
 server includes them. The user's original go-ahead for using these was
@@ -93,13 +94,12 @@ built jar attached to this project's GitHub Releases is built with these
 files stripped, so it is **not** byte-identical to what's deployed on the
 live server, every other file is.
 
-## `GemCaseScreen`'s GUI background, still unsourced
+## Gem Case art: our own (since 0.5.0)
 
-No free source (pre-split upstream, Zenith, or the CurseForge pack) has a
-Gem Case GUI sheet, the feature postdates the pre-split cutoff, Zenith
-never implemented it, and the CurseForge pack has no GUI-sheet textures at
-all. `GemCaseScreen` will render with the missing-texture checkerboard for
-its background until this is sourced or hand-authored.
+Drawn by `tools/draw_gem_case.py` (MIT, like the code): the block model (cabinet with drawers, velvet tray where
+`GemCaseTileRenderer` draws the gems, glass lid), `textures/block/{gem_case,ender_gem_case}_{side,front,velvet,glass,bottom}.png`,
+the item models (the block model) and `textures/gui/gem_case.png`, the screen sheet laid out for `GemCaseScreen`
+(main panel, material panel, scroll handle, upgrade button). No upstream or CurseForge art involved.
 
 ## Loot Beams Refork (CC0 1.0)
 

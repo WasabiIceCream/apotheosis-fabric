@@ -1883,3 +1883,15 @@ wording; key names follow upstream's.
 
 Boot-tested: 116 affixes (was 111), 23 tier augments (was 19), no new errors. Dependent generators re-run with the 0.5.0
 jar (farming-path, jewel-gems, modded-invaders, skill-forest, dragon-loot): no output changes.
+
+## 0.5.1 (2026-10-05): Gem Case art of our own
+
+The Gem Case had been broken since it was ported: its block and item textures (CurseForge "Apotheosis 8.5.4 Legacy
+Textures") were 64x64 UV sheets for upstream's 3D display-case model, which postdates the license split and was never
+here, so they showed as a scrambled cube and a flat sheet; the GUI background was never sourced (magenta screen).
+`tools/draw_gem_case.py` now draws all of it (MIT): a block model matching `GemCaseBlock`'s shape (cabinet with
+drawers, velvet tray at 13 px where `GemCaseTileRenderer` puts the gems, 1 px frame, glass lid with partial alpha, so
+26.1 renders it translucent), plain (walnut, purple velvet, brass) and Ender (dark purple, teal velvet) textures, item
+models that use the block model, and `textures/gui/gem_case.png` laid out for `GemCaseScreen` (left panel shortened
+to 81 px for its 6 material slots). The 4 CurseForge Gem Case files are gone (in the server's `.backups/`); public
+jars now leave out only the 2 sigil icons. Approved in game (block, item, screen).
